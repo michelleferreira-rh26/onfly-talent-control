@@ -644,7 +644,7 @@ async function salvarVaga() {
   if (!nome) { toast('Informe o nome da vaga', 'error'); return; }
   if (!recrut) { toast('Selecione a recrutadora', 'error'); return; }
   if (!setor) { toast('Selecione o setor', 'error'); return; }
-  const mesVal = document.getElementById('v-mes').value; // format: "Maio 2026" or "YYYY-M"
+  const mesVal = document.getElementById('v-mes').value;
   let mesNum = new Date().getMonth() + 1;
   let anoNum = new Date().getFullYear();
   if (mesVal && mesVal.includes('-')) {
@@ -653,9 +653,12 @@ async function salvarVaga() {
     mesNum = parseInt(mesParts[1]);
   }
   const dados = {
-    nome, qtd: parseInt(document.getElementById('v-qtd').value) || 1,
-    recrutadora: recrut, lider: document.getElementById('v-lider').value.trim(),
-    setor, meta: parseInt(document.getElementById('v-meta').value) || 1,
+    nome,
+    qtd: parseInt(document.getElementById('v-qtd').value) || 1,
+    recrutadora: recrut,
+    lider: document.getElementById('v-lider').value.trim(),
+    setor,
+    meta: parseInt(document.getElementById('v-meta').value) || 1,
     conclusao: parseInt(document.getElementById('v-conclusao').value) || 0,
     mes: mesNum,
     ano: anoNum
