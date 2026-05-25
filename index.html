@@ -664,7 +664,6 @@ async function salvarVaga() {
   }
   const qtdVal = parseInt(document.getElementById('v-qtd').value) || 1;
   const conclusaoVal = parseInt(document.getElementById('v-conclusao').value) || 0;
-  const statusCalc = conclusaoVal >= qtdVal ? 'Concluída' : 'Em Andamento';
   const dados = {
     nome,
     qtd: qtdVal,
@@ -673,8 +672,7 @@ async function salvarVaga() {
     setor,
     meta: qtdVal,
     conclusao: conclusaoVal,
-    mes: mesNum,
-    status_vaga: statusCalc
+    mes: mesNum
   };
   if (editingVagaId) {
     const { error } = await sb.from('vagas').update(dados).eq('id', editingVagaId);
