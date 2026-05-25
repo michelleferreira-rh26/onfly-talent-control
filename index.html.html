@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talent Control · Onfly R&S</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.12.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f6fa;color:#1a2340}
+:root{
+  --navy:#0a2547;--blue:#1a4b8c;--orange:#f5841f;
+  --bg:#f5f6fa;--card:#fff;--border:#e2e6f0;--text:#1a2340;--muted:#6b7a99;
+  --success:#22a05a;--warning:#e8a020;--danger:#d93025;--info:#1a4b8c;
+}
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#071a38 0%,#0a2547 60%,#0f3566 100%);position:relative;overflow:hidden}
+.login-wrap::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(245,132,31,.15) 0%,transparent 70%);border-radius:50%}
+.login-wrap::after{content:'';position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(26,75,140,.4) 0%,transparent 70%);border-radius:50%}
+.login-box{background:#fff;border-radius:24px;padding:36px 44px 40px;width:100%;max-width:440px;box-shadow:0 32px 80px rgba(0,0,0,.35);position:relative;z-index:1}
+.login-mascot{display:flex;justify-content:center;margin-bottom:12px}
+.login-mascot img{width:100px;height:100px;object-fit:contain;border-radius:50%;background:#fff4ee;padding:8px;box-shadow:0 4px 20px rgba(245,132,31,.2)}
+.login-logo{display:flex;align-items:center;gap:8px;margin-bottom:4px;justify-content:center}
+.login-dot{width:10px;height:10px;background:var(--orange);border-radius:50%}
+.login-title{font-size:22px;font-weight:800;color:var(--navy)}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5}
+.login-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.login-field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.login-field input{border:0.5px solid var(--border);border-radius:9px;padding:11px 14px;font-size:14px;outline:none;transition:all .2s}
+.login-field input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,132,31,.12)}
+.login-btn{width:100%;padding:13px;background:var(--orange);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.login-btn:hover{background:#e07618;transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,132,31,.35)}
+.login-err{background:#fce8e7;color:var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:12px;display:none}
+/* APP */
+.app{min-height:100vh;display:none}
+.topbar{background:var(--navy);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+.brand-logo{display:flex;align-items:center;gap:8px}
+.brand-dot{width:10px;height:10px;background:var(--orange);border-radius:50%}
+.brand-name{color:#fff;font-size:16px;font-weight:700}
+.brand-sub{color:#8fa4c8;font-size:12px;margin-left:6px;font-weight:400}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-badge{display:flex;align-items:center;gap:8px;color:#8fa4c8;font-size:13px}
+.user-perfil{background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+.nav-tabs{display:flex;gap:2px;background:#0d1f3c;border-radius:10px;padding:4px}
+.nav-tab{padding:7px 16px;border-radius:7px;color:#8fa4c8;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;transition:all .2s;display:flex;align-items:center;gap:6px}
+.nav-tab.active{background:var(--orange);color:#fff}
+.nav-tab:hover:not(.active){color:#fff;background:rgba(255,255,255,.08)}
+.btn-logout{background:transparent;color:#8fa4c8;border:0.5px solid #2a4a7c;border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.btn-logout:hover{color:#fff;border-color:#8fa4c8}
+.main{padding:28px;max-width:1400px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+.section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+.kpi{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--before-color, var(--orange))}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px}
+.kpi-value{font-size:32px;font-weight:800;color:var(--navy);line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px}
+.kpi-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;margin-top:8px}
+.badge-success{background:#e6f9ef;color:var(--success)}
+.badge-warning{background:#fff8e6;color:#b07a10}
+.badge-danger{background:#fce8e7;color:var(--danger)}
+.badge-info{background:#e8eef9;color:var(--info)}
+.badge-gray{background:#f0f0f5;color:var(--muted)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+@media(max-width:800px){.row{grid-template-columns:1fr}.nav-tab span.label{display:none}.topbar{padding:0 16px}.main{padding:16px}}
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:22px}
+.card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--orange);font-size:17px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.field input,.field select{border:0.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:13px;color:var(--text);background:#fff;outline:none;transition:all .2s;font-family:inherit}
+.field input:focus,.field select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,132,31,.12)}
+.field.full{grid-column:1/-1}
+.btn{padding:10px 22px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:#e07618}
+.btn-secondary{background:transparent;color:var(--navy);border:0.5px solid var(--border)}
+.btn-secondary:hover{background:var(--bg)}
+.btn-danger{background:transparent;color:var(--danger);border:0.5px solid #f5c0bc;font-size:12px;padding:5px 10px;border-radius:7px}
+.btn-danger:hover{background:#fce8e7}
+.btn-edit{background:transparent;color:var(--blue);border:0.5px solid #b5d0f5;font-size:12px;padding:5px 10px;border-radius:7px}
+.btn-edit:hover{background:#e8eef9}
+.btn-export{background:#e8eef9;color:var(--blue);border:none;font-size:12px;padding:7px 14px;border-radius:8px}
+.btn-export:hover{background:#d0daf5}
+.btn-actions{display:flex;gap:5px;align-items:center}
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;padding-top:18px;border-top:0.5px solid var(--border)}
+.table-wrap{overflow-x:auto;border-radius:14px;border:0.5px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead{background:#f8f9fc}
+th{padding:11px 15px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:0.5px solid var(--border);white-space:nowrap}
+td{padding:11px 15px;border-bottom:0.5px solid #f0f2f8;color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
+.progress-bar{height:6px;background:#eef0f8;border-radius:10px;overflow:hidden;width:100%;min-width:70px}
+.progress-fill{height:100%;border-radius:10px;background:var(--orange);transition:width .8s ease}
+.progress-fill.success{background:var(--success)}
+.progress-fill.danger{background:var(--danger)}
+.alert-box{border-radius:10px;padding:14px 18px;font-size:13px;font-weight:500;display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.alert-danger{background:#fce8e7;color:var(--danger);border-left:3px solid var(--danger)}
+.alert-warning{background:#fff8e6;color:#b07a10;border-left:3px solid var(--warning)}
+.alert-success{background:#e6f9ef;color:#166a3e;border-left:3px solid var(--success)}
+.chart-wrap{position:relative;width:100%;height:210px}
+.donut-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px}
+.empty-state i{font-size:36px;display:block;margin-bottom:10px;color:#d0d5e8}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;flex-shrink:0}
+.dot-success{background:var(--success)}.dot-warning{background:var(--warning)}.dot-danger{background:var(--danger)}.dot-info{background:var(--info)}.dot-gray{background:#c0c8d8}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,37,71,.55);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:18px;padding:30px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.22)}
+.modal-title{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:22px;padding-bottom:16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px}
+.chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.chip-atend{background:#e8eef9;color:#1a4b8c}.chip-com{background:#fff3e8;color:#c45e00}.chip-tec{background:#e6f9ef;color:#166a3e}.chip-back{background:#f3eeff;color:#5833b0}
+.month-selector{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.month-selector label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.month-selector select{border:0.5px solid var(--border);border-radius:9px;padding:8px 13px;font-size:13px;color:var(--text);background:#fff;outline:none}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:12px;flex-wrap:wrap}
+.toolbar-right{display:flex;gap:8px;align-items:center}
+.alert-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin:20px 0 8px;padding-bottom:4px;border-bottom:0.5px solid var(--border)}
+.alert-section-title.red{color:var(--danger)}.alert-section-title.yellow{color:#b07a10}.alert-section-title.green{color:var(--success)}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-bar select,.filter-bar input{border:0.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);background:#fff;outline:none}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--orange)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+.progress-label{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;display:flex;justify-content:space-between}
+.loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px}
+.acesso-negado{text-align:center;padding:60px 20px;color:var(--muted)}
+.acesso-negado i{font-size:48px;color:#d0d5e8;display:block;margin-bottom:12px}
+/* USUARIOS */
+.user-card{background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.user-info{flex:1}
+.user-name{font-size:14px;font-weight:700;color:var(--navy)}
+.user-email{font-size:12px;color:var(--muted)}
+.perfil-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.perfil-master{background:#fff3e8;color:#c45e00}
+.perfil-editora{background:#e8eef9;color:#1a4b8c}
+.perfil-leitor{background:#f3eeff;color:#5833b0}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-mascot">
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAF1AXsDASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAAAgABAwUGBAcI/8QARRAAAQMCAwYCBwYEBAUEAwAAAQACAwQRBRIhBhMxQVGRYXEHFCIyUlOBFTNCQ5KhI2JygiSiscEWNFRjgyUmk9E1RPD/xAAbAQACAgMBAAAAAAAAAAAAAAAAAQIEAwUGB//EAC8RAAICAgEDAwMDAwUBAAAAAAABAgMEEQUSITEGE1EUMkEVIiMWMzQkQlJhgZH/2gAMAwEAAhEDEQA/AM3ZKycJ7KIA2Tp7JrIASdIBJACRJgnQAkkk9igBkjwT2PRIDwQACSOyYiyABST2SsgBk4SsnAQA1kiE6VkACkiSQAKSKyVkAAUk5CayAGITIk1kACUJRuQ2QAyYnTgismISFoAoXBGQhITGRkJkRTIAFA7ipbIHDVDAAjRDZGmOhQhIAhKyIpigYBCjspSgIKGJgc01kRFtUyQA2TIk1k0CNDZKyIhMgY1krJ0rIASY8UVkspQAIRjgmylOEAK6ScBPZIQKcJ7JEIAayYhPqlqgQNkraItUkDBsU40SskjYbEkkkjYbBPFJOkjYbGSRJJjBTFEUyABTWTpIAEhMjKbRAAFJOkgAHBAQpiEDmoAhcExCN4QFADJinKVkARu4oSpHDmhISEAeCYoiNEKYwUxRWTFAAu4KM8VIeiEtQxAWSRWTWSA0SWnRPZKyAG8kk9krIAZJPZKyAGST2SITQIJoCchME6BjJ7J9E9ggAbJi1HZMUADlSsnT2voEm0u40tvsAll1VlSYTUTNDiMjerl3swSHKA+Vxd4BUbeRoqemzZU8TlXrcYmdI5JgFopMEgItHO5rv5hoqyuwyqpRnczNHye3UKdOfRd9sjFkcZk4/ecTgslZEUlbKAKSchNZGgFp0TEaJ7JKWmGwEkdghRoYKYhGExBOgHFJtLuxxTk9ID6JWvwV5huCPkAkqrxt+EcSrSOgo49GwM066rV5HLUUvXk3eJwGTkLqfZGOII5JjryW5EUA/Jj/AEhQVFDRTgiSBovzZoq8ecpk9NFuz0xfBbUkzESBBZXWM4NLTAyxEyQjieY81UFhC29V0LY9UWc/fj2UScZrRGQlZEQmWUwAkaICpChLboYEZQFSEIbBJCYKEo7ISEyL2CkQkQkUDTBIKBSICNUMNmktZJOl9Uu5IZKyK3ilZNADZPZPZKyAGsmRWSKABRBIBFZADWT2SToAayZwRJihgD4LQYLQNhYJ5m3kdwBHAKvwSnE1UC9t2s9orRXvqud5bPlF+3A630/xsZr3rP8AwRPVO2N5F2tJHgFaYZhpkiFRNHm19hh0v4nwXeMNq5PeqXxt5MjAaAtNVhys7yZ1csiMeyM0Q5vvNIPik12hadWkag81o6rDqgsIlf6ywcA8DMPIqlqabcPtclp4EhRtx50PqiySnG5dMjN4zhgiYaqnH8M++34VUFtltw0PaWOALSLEHmFyUWB0kbi+a8hvoDwC3mFyyVerPKOT5D0/OV26fDMxDSzzkCKJ7z4BWFPs9iMoBcxsYPxGxWthayIBsLGxgcgFLqdeKhZzMn9iMlPpuuK/kZmYtlZzfeVEY8gj/wCFXa2qmfULTckgsH6rfvey2uCxfDRkajZesYP4UkUn1sqqrw2tpyd7TvAHO2i9E+qY2Is4AjoVYr5ixdpla/07VJfsejzCxBtYq+wHDwxoqpm3J9wHl4q+r8Eoav2hHun9W80EkDorM5AWCjncqrK+mHkfF8DKm7rs7oAm5uVNHSSSR7xxbHH8b3WC7cAwx9ZI6Z4/hM0t1Kvzg8L3B8oD3DrwH0WspxXZ+6R0Vl6h2RlI6WKQkR1tM93Ibziop4JIn5JGFp8VsX4RTObYwMI/pCq63DBBEWDNuObTrl8QstuBFLcSEMrb0zPggAh4DmkWI6rL7R4c2jmEsX3Mnu+B6LWTwmKUxu4tXDi8DZ8NmYRq1uZvgQnx2RKi5Qb7FHmcOORQ5Jd0YchMpHAICF2S7o86a09ApiESYpiIyOKaxREJrpAR2KA8VKUBFygiyNJORqmQIYBDZGEJCBo0aSdJBIQ4p0wCOw6poYKSeyYpCEkUkkAIBEmCdACSASTjggBkk6cIAucBFoJHDmQCrrDYPWa+GG49pw4qlwM/wZGjrdXeEzbjFKeTkHhcVny3l9z0niklhLR6BLDT0sQfNIyJg0u42C4JsdwaEkGrjNumqyPp7ra2lbg0VC7WpLwG8i62i8y2S2F2320lqJZcbfQUcTy0utY36ABb+iiLgmaDIz7Y2uEEe3z7U4BY5qmzvJUGMY/gtW0iKoAcDccFl8U9CFFhuHSVWI7W4hLKG+w1o953RZhvovw12v2tXhx42da6hdLEiumxmSmXJS7wRuhilJp/Gj/UFNHilI4i0zCf6gsNH6KcNdxxXEP1lPL6L8Gge1r8cxGN592z9R4qvCnAlLUdliy/lIR6paPR4ZmvAPIrpjs4XBuF59sq3ENlNo3YJX178QoKqnMlJK/UtI5XW3wKQy4ZG88ST/qsOXhVV94GfjeQuuk42+USV9bT0bmtlf7bhfKOirqnafCqf76aNh/meAsX6Qn4jU7YS4fSTGPPSB4LTyC59mfRThtXQx1mN1VVPUSjNlD7BoVirGxa4p2eSldmZt1zjT2SNbJt3s+y96ynH/lC5ZPSHs6OFfS//Iq//gX0fxTmAUEszm6PcX3AKuI/RxsY0AjB4nA9SVKz6Kvu4MK1yFnaNiOQekXZwm32hT3/AK1KzbTAalwtiNL4fxQut3o92NLbfYkH7riqPRrsdKcv2S1nix5Cwe9gN66DM6uUitqaNjsttDSijDYYt/G51zJG64W2ZG0ta8DRwBC+fMGpX7Gbb1GDUczn4dV0m8Yx5JyFe67H17MRwSnDj/HYz2h1CuShXpe2uxWxr73Nq19zudF0XJWQgxuDtQQrbdaXXFXNIiIHkouOkbGufU+xgcdYI6thHwKud7Ubr8MpXfjsjJa9zWOuIxluqyeXc08jzyYVzsnvJSXybezSx31fBiJR/EcPEqMqWXVxPXVRkLuofajyuz72AUJ4onISpCGcLhRkWUqEjRAMjITFEmKCIDhdRnipSgI1QIFCisU1igDSJAJWThBMSbVEkgAdUkSFACSSThACsnSSQAk4TJ0AJJJJNAzvwacR1GRx9l+ivNWnTiCss11jfVXuG1rZmCKQjeW4nmuX5nBl1e7A7X07yUOn6ez/AMC9IWJ/aTdnBJ99T1mQ+IIWm9GG0FBQ4lWbPTuLKl85fEfwkELDbaXZh9LUW1hrInX+tkFZQyHa+WrjlEeRjZB/NdZcTJk8bb8mLNp6M5Rh+Tb7aYx9o4k6njeTDAcoPU8yqeAXIuuXO58pe43cTqV2U1iQtJbN2S2zp6a+iCR307RoOSzeEyur8Vr61xuC8xs8AFo5XbulmeOUbj+yzOxjD9nMI4uLndyug4Otd2cv6ktlFRRW4/UF2N4Ewn2mGYW8F00O2tHRU/qu7LjGSLgeKpsZd/73gA/LikP1XZRej+oqoGVbsUazfe3lEd7XV+1Ux/uGqxnk2S3ScUeLsxn0gsqAzI11G6PzK9DM3q2yjqgaGOmJHmF5/Ns87ZzbHBnPq/WRUl7LluW2i2G0ryzYaYDT8H7qreoTlHpL2FK2tWKzycOARXw0SuHtPbmJ8TqtZQP3tDA88SwXVBg7A3C2t6Rf7K8wUf8ApUB/l/3S5mKUYj9PyblM6UNtVIgPFcz4Z1aPNttX29I1IBypD/qvRtnK+XDn00wILN21rm3tcLzLad5qPSa9g4RUzR3XokbA2BrTyaB+y2uTbKquLRpsGuN189npvrdL6sJzMxsZF7lyx2020kJY6moTncdHSDgPJZ2oY8t991ul1xutbRU7uUnOPSkbanjoVvqbHvmN+ZVVtFUiKn9XBu9/HwC6K+vipGaHNKeDVmaiSSaV0kjrucblWeJwJ2T92Zqud5WuFbpr8kRQkIyENl1qWjhG9sjc1BZTFqZzUCIbIXBTFqjc1AERCAjVSkKNwN0CYBQFSEIC0oIjBMiAPRMgaNHZJSZUsqCRGlqpAxPkHRGwIrJrFTBgSyhGwIcpT2UuVNkKAIwEWVGG+CPKECIcqctKlyhPlQCIcpSylTZUxagZFZGy4N9bosqINSaTWmSjJxe0c+0k00uzlWy5ORmYX8CrYvEr8PqxYioohY9SLLnfTiooZoHatfGR+yWyhbiGx1A9jgaigkdDKy+oA0Wmvri4yjWjosaycbK7LX2O5huV2wOAIXHlIdwU8WhC5p1zT8HbRtrcU+pFhVnNh1Q0HUxOA7Kk2JMYoadpI9lhLr+CuYpGkWOotqspR4HitJjcgbUQNwlzi50zn+01p1LbLfcRa4bTRzXP4/vOMk+yKOvzP2wlkcCD6sCPDMV6vQs3dHAy3CNv+i8qNRFW7ZVs7PZic9kcfgxq9MOLYdEwNM4NgBos2fVZZrpRV4i6mpy6paM16UxuTgdcOMNc1t+gOi7tqInSbFVjRxikD7Dpe6rvShWU+IbJSx0bnSTxSMlY0DU5TdXmB1NFimBNLpA6Gspg2UH8DrWIIU6qrI1rqXgV19U75KMvJw4XPGMLkeXaCEW+o0WloGGKhgjPFrBdY/ZzZuuoMQd6/ilNNQMN4mMN3Otwv5LZOqIOczO6q8lbZa0ki3xNNeMn1SXclsgcdbWQetUwGs7O648QxakpqaSQSB7g0kAdVqoY1spL9rNtPMohFtzR5wHit9I2Iye9aVsQt4L0sgi4+i8y2CjbWbWPkbI175JXSvtysvUXdVn5B61FlLh/3OU/khLdOqz+0bamBwMTzuZBY25FaMgW4LjxCnbU0skLhe49nwKqYU4wuTkX+RhOyhqLMPJcm5JJ8VEQV0yNykg3uNCoyF3MGnFNHms01JpkJCaymLU2UKRAismIUuVMWoAhI0UTh4LocFG4IA53BCWqZzdUBCAIsqEtUxCCyCIBbooyFORooyFJAafKllRhLiokgANU9kVk9kABZKyMBPlKAI7JsqlylNZAABqcBGAlbVAgbJWRZU+RAyPunsjyJZEABZO0a3T5D1TgJSekxxW5I6oXezosliGB7Q4fis9bszXsijqDmkhfwzc1qIjZTBy4mWfbj3ycT0qPG05eLCMzHtqvSKPZdTYfKet0XrnpDZocOoX+Tlr8x5Fd+CYZUYpVbuI5WN1e48grMebusfSooqT9O40Vtyf/ANMAKn0iyEtbQULPEuVXQ49jVTUugxKshjLXEFjG2F/NfSmF7PYPTRtEkHrDxxc48V476YPRRiUeIT45srEZ6aQ55aVvvsPMt6hb3EulL+4kaDkMFVr+JtlfhUdA0FxqIWuebuI4lXERw0DWrZ3Xik1bVUcxhqWzQyt0cx4IIKX2vMdN4R43W2U4tHOOuaej3OJuFOcB60wnzU5wmldG4UteynLhe7XgLwX7Wl5Tvv4FXWzdJtNtFVNpcJgq6hxNszQco8yoytikZoUzbNTi8W1sGNRUGF4/T1AmdlGdurey7nbO+kZrb/bVA49Mi9Q9Fnowj2fezFcdnbV4llsIwLsj/wDsreVmD4ZUg3pmNJ5t0Wnyci1f2zocTDpa/l2fN52Y9IM1y/aGkh8Gx3Qt9H201cS3E9qQ5h4hrSAvadodnJaKN1TSPMkTdS08Qs42ULSXcpl1vTN3Tw2FYtx7lPsTslR7Mxvcyd1TUPFjIRYAeAWkJuube6J96LLWW5ErX1SNtTiwoXTBErjouaZ6Z8t+ahldccdVW9zv2LPt7j3MzjDcuIzCwsTewXGV34yc1c824ABcRC9Dw23RFv4PK85JZE0vkBMiskQrJUAIQuPJSWQlqAIio3KdzdFG4IAgcgKmcNEBaUCZGRcprKS2qVkCIyNEGVTEaIbJgaUNT5EaV0iQIbqkQiSQAKSJJGgBSsOiJN9EtAMiACb6J0wHsOiVgldIlACsmSukgBJinTFHkaensBxLX25KdjtNSuarF2hzb3CaGUEcVwXK0um9np3DZMb8da8o6yei9F2RpGUeEsdYbyX2nOXmme5C9QwOYSYRTOaRbIBopcXpybLean0rRbMfay7IpOh1VWx+vFdMUlua3qm0aeVafkrtptjdmNo2n7XwinmefzGjK/uFgq/0A7JSyF1NWV1MD+EODgF6oJB1siMo6rLG+SKksOqT3o862f8AQlsThkolnhqK94N/4z9OwXomGUNBhcAp8OpIaWIC2WNtkxlN9Eg82LnHKOpSc5yGqKoeEde8N/FPvrEt0uOIvwWRx7a6Glm+z8HjdiGJP0ayPVrPElT7J4bXYc2aqxWrdU1tUc0jQfZj8Ak46Xcain4RpnvbJG5jhcEWIXmu0dG3DsTfC24jd7TPBeg7wAaLCekCeN2JxNB9prPaK1PJRXRs2eBFqeinEninc+64TKL8UjNpxXOdTN70I694fBC5/PouMy68VHPNlhdrqRYKxiUu61RKubdHHolNlfWP3lQ93UrnKkcLXQFek1xUIqKPI7Juc3J/kFMUVkxUyAKYoknDRAAFA4CyM8ELuCAI7BA4KW3NA9AmR2Qu4qRC4IERobI7IUDNOnskmugY9kyV0kAJKySa6AH1S+ilpqeepOWGMuPM8lZwYFK4AyzNb4AXVa3MpqepSLtHHZN/euOynSIvyWjZgdM3R73u8RopxhNDb7s91SnzOPF6RsIensuS2+xlCCkFqjg9Cfwv/Uh+xKLo/wDUl+s0B/T2X/0ZdNxWo+w6HmH/AKk/2HQ8t4P7k1zFAP09lmV1HJOPa0V/imH0FFRSTv3hyizRfiVlm1MjdbArY4tyyF1R8GqzcWWHLpn5Ovq0quqg6mlHNjuBC6xWAj2oQfJKSSlmYWSBwB8OCr8jxqyof9lvieWeFZv8HKyoFtStbsVjrIZDR1EoEbvcvyKwddFLRuzMcZoTzA1CCGsboQ5cY8a7Ct/d4PRKc2nMr3FnuTahpNwQR4J5qiQ08ogkbHMWnI5wuAeS8qwnaeqo/Yc7ex9CdQtVhm0lHVtFpQx3wuK2lWXGZjljbOuLG9raIWrcGhrWj8yB+p+id+2Va339nMQB6Bt11R1rCQQ8fQroZWX/ADD3V1ZESpLDl+GVh2j2nqxbD9nXRD4p3ZbJR4bj+KgjHsW3EJ13NKbE+BKtfWbn39PNM6pYOLhZDyQjg/LJ8Fw/DMGpzFh8IYXe886ud5lWDajxVJJiEETM8kjWt6kqkxXbKhpWltLaeX9gqtuTru2WI4iXZGuxHFIKGkdUTvAaBoL6uK80xLEHVtZJUuJ9s6C/AKrxDGKnEJTLUzZvhaOAXKapvVaLMy/d7I2FFCr7loZggNQqt9W0cSlHNnOrrDmVVpxbb5dMETvy6qI9U3otYn7yQAc0FTIHSXafZHBcgrYoiN2CbcyojWN5NXccTw/0y6p+Tzvm+d+rl0V/adTjdAuffvd7rQr/AGUpoa187amIOygELbZElRDrZpsOp5Nirj5KlMbdQto7CKD/AKdvdOMLw5o/5aP6rU/rFfwbv+nb3+TElqbKty2ioGjSmj7J/U6E/wD60fZL9aq+DJ/TlvyYNzfEIct+C3xw6hda9LH2RtoqRlstNELfyofM1/hB/Tl2+7PPMtkDmr0V9LTOOtPEf7VDLhGHTA56VoJ5t0UoczW/KI2enbUuzPO5DlQFy1uJ7LRuic+kkdvBqGO5rIyNLHuaeINjdbCrIhctwZpcnDtxnqaEhSulcdFnKppQbpapm8USSYDap7JFJAIVkUbGvkAAJcUK6KOweXnjZVcy72anIvcfj/UXxgXeHgMiaxjcoHG3Mqwa+2irqSRoj1PFFJVCJjng+S4id3uS2z06qhVQUYosS8F2VuvUowFyUr2xxi5uTqV0tqI7i6acX5FJSQVuiJtiULpmFriCFBFUgEmyg7IpjUG0dZbohNgFz+t5rgKGaZxB4p+7EFVI4tp2uqXwU7fcAL3f7KoGH2bbKCuzE8QiiqgyQ2O7HNcoxanH4wu+4pxjjI8x5rqnlyI3YdrexugOGu6LoGLU3HOFIMWpSdC1bHrRqlBle6geNLXVXXbPbzNJTkxPtwtcErTjE6U/ib3R+v0Vvalb9FWvopyFqaLeNk3Yz3Wzzeso8VoGl0sDns+Jmq4m4oAbOLmOB4HQr1N1Rh0kbi6ZgAFzdZCqOHOxF0sdLFK2+mduhWkyOCr81nQ4vqWcXqxFXS7Q1UNt1VvFuRKsIts8RYLF7Hnqrqjodj6xw3+Gsp5jxs4hpVo3YvZicB8dK4j+SXQrS2020PUkdPjZleQtxkZb/jfEMvBhPW6hm2wxGWMgzBvkte7YHZx3CCdnlKiZsDs5b2oKh/nKVgdkn4Lm9fk89qcbqKnSaoe8DldcxxBgFwf3Xpcuxuy0DLzUzIx/NKVXVGG7G0ocIsOE7vM2UoYltz1oq259VK3KRg/tNvJymhnmn90GyvsUFLUQGngoaemjv7O7bqPqnoYKGkiZvZhfoVu8XgIebDm8v1PLfTUVsNM82c+5PRdTIZHaBpVn65hw0ErE4r6Bv5jVv6MOnH+xHNZebflP97OKOikI1ap48Nda7lN9sUQ4SBE3GaT4grG0VVWPFh9lotm6dlOJH3IJFlnvtqmGgcFbYFiDKmObI6+WwWt5WSWMzb8HDeZFGhMrTezgopHggqufMQeKE1VguE91HpyqaDdXtinEbxoVYxEOaHDgVk8WlIma4K7w2taaZovqApKUSDgy4Cc8FysqrjgpWVDD7DtAVPqjoxuEiKoc5jtCippczg1x4qOrkYGFuhI4FcLJi117rE7I7GoNouJfYcCAsTtnh4gqxWRABk3EdCtWatr4rHiFR7UyRyYWQ86hwy+a2PGZLVyijT8xiRnjuT8oxpTZikUy7A4DRqRYHgSnKQN/dF/7khYH2tPqggJM4JEt/DcnzSJfzIA80ADe3G6kD8o0DiOaBzmDS9/7kzXSPOVoaR5qvk0K6twf5LWFkyxrVYvwWdLUNdGAE9W8uhIHmqzIWOBErWnmLqT1iQCxLCOoK4u/hcqEv2LaPRMb1DhWQTnLTLGGuY9gdm5IxVsvfOqN8Ie8uDy0nobKGSjf+KrmH1CmuCy2tkZepcFPXdmlbXstYG6inxARi/XxWZdRVjHXgxOZg8QCuaTDMRmku7GJiP6QofoGWxL1LgmnbigBvm1U7cSY8akLJfZVa3hiTSfFqY0GKA2bVxOHUhRfBZkfwZI+osGS8nD6RMSfFjEJjdZroQf3WZOMzfF+6b0kRVtDLSz1L2ODwWDLyKxzq483Ls8CEqqIwl5R5/yNkbsmU4+GbE41L8X7oTjk1vfPdY11fl/EoziOvG6u7KOjaHHZwNHnuuigxDEK+fdQuNh7zidAsjgVPWYzV7iK7Im6ySHg0LfU7aago2UlK2zW8XHi49SpKOyEpaOlodG3KZXPPMkqaLWwXHE4u1CsaSImxWeKMLeyZmbLzXdSVFXBYwzPZ5FNBT3tpou6CAW1CjOmFi1JGWu6yt/tejupMXxQtAdPfxy6qeWur5I7esP+mi5Y2BtuinCxrBx14iWJcllPt1nDO2WU3kLnHxN1A+nNuCtXNF/BCYsyzRrjBdkU5TnN7kylkp7a2XFW0cc8To5GEgjQg6haR9PZck9PcHRRkxqJ5jjNNXYU/M8vfDyeOH1Vd9pvIuJCvTq2mjfE6GWMSMcLEFea7WbN1NA51Xh4MsHF0fNvksezItkYxF513hUrK+TjvCskzENV0srvJLZM1AxGX5hW09G2JEitY9/ANcLryZtab8Vq/R4+prJ6plPMIyGAkkKlyNMr6HCPk2fE5EcbJjZLwesyVzLE3C53VzDwcs6+hxAD/wDIM1/lUZw6sPvYlb+lq5L9Dydnbv1HiLwy3xCrDnNu4ELsoK1giAzWKycuCukcHOxOe46FSx4ZK3X7UqCB4rK+DyGjAvUeMns28dZp76I1rQD7ayMdOY2/83MT1L07o2uaWule4H+dYv0DJ+Sb9UYvjRqWVzpT7Lrt6o98bXJWbgqZoGhjHsLR1RSV87+LmNb4FYXwuX1a0Z4+oMFx31GgdVZeDtVS49WGd4hGYhut7aXXIap9iMzded1zuyk2zNuf5lvOM4mVEuux9zm+Y5yGRH26vBH7d7ZXdk9n/Af0p3+ybEDug18O66HRy2zUtOY+zYDyS9gHVzT9Ewc97rNcCegCN0bYwN7M1pPIC5SAjLhfQtA8lJuXOGZ5Y1vVyZ07WNDYS0eLhqgLpZHC8wd5hADgwtdoWu+iRmubDK2/QJmNDSQ+Vv0Sc9v4Xt87IAa1tS5vZMXAcANfBOMxN87T9EYcB70g7I7i0BcctT5JOsfacW9k7nE+7IAPJN/EPB7T9EEtjNc08h2TlzQLDKOuicvHAytJ8k99LmRgHkgQFm2/D2T5og05uPKwSLiTo9oCBxI/G1GwKTbLB2Y9gr6IPYyUOzxPy8HBeXnYPaYvyiCG1+Ode1jXUvb2SD7fjYjY9nkdJ6M8XkAdU11PEOdgXFXVD6McNY0urMQmlsLnKMoXoBe61t83ysq/Gat0UG5zNdm1NuQUkKT0jNMpqPCaM0VDG1kYPHm7zXI15c5DXT55SBwuu3ZyjNdiNNTcDLM1lz4lZV4MHk68Ogc5uYMcQOJA0V/QUwOuU+dl9IYLRbP4HjWGbE0+AUswnpd7NO5gJvbmuLZjC8FwODavFH0EE9NTVJ3THtvoBcgeF0utk1BHiLaZ0bQXxvaDwJba60uGbMNmwltfV4hDRsfqxrxqQvTNvZ6Ot9G1HjBw2ngfI9kkbGNGmvC6y+0NZHDgtPI+hicJ26RkaN05La4dMLVuRqM/JspklAy5wJzMCOKmoa5ufK1gHEX4qsEfM3C19c11NsNRZACc7X25cV04nh8VfimEVUELBDKLzBrdLKxZgxf2FarknH+4jGNhuLgFXtBslitTCJXxNga4XaH+8R1sr+jhpK3bGaURRimw+EvEbRo9w4LTtmr4oqkmnY7242iVsoa9xdqSSeAHABam5uD0bql+5HqMhF6Pq2XDaicytMjId4xg01vwN1hqqmdG9zJGZXtNnDoV7ZVmqnpKmhFOXQunDJHPqATldzFuBC8lxWkMFbUQFxcY5HNuediqspliKMxVxamwVNXsHRaeriCpK+IXOiWx6MDimyuEVlYZZBJTufxMRsL9bLnqfRu8f8rimnEZ2f8A0tPiEYuRchWmDVBnomh0gDo/ZIKh1EjzGs2ExyF1oXwTt6h1v2Wl9G2EYhhMtYa6DdF4Aab3BW0u6987OyGRzj+IdlLYDGT4iOyDNr7zQPJK5H5jUxJ+YzsjuIZzmc3M/ShcWH8TOyLX5jOyWvxs7JpgR5mDTMz9KB7mE++wf2qZ1/jZ2QHN8bOyAIwRbR7D9EwcL+8zsjJcPxs7IS483sH0SDQnaj3mdlGS3X2m9lI15B9+M/RM7NxzM18ExMjzm1i9p+ia3iOyIl3xs7Ifa+NqQ0agTShto2Mj8uKjyzuN8jT4lIert01unc9jhbO4eFkkAQbbV4a7wCYGXgxjGhCI2u4Od2RAQM94uJ6ckbAWSU6iNp8UstuLW3TGRhGUFwb4KMiM83IAlJcdGtaAhyyE6NaUskbQC9zh4JnSR2IBeAgCUBwGrWlA4v8AhaFDeNx4vRtjZa5c4BABtDz+W0/VOWu5sZ3TF8LRZt79VGTGeJcgCR2YcI2INb/dNTNbGTZpeT5IgYojZziXeXBADZH2uY2280spsbRsCGV0buLz9Ah/hWtnd+lABNFrl0TPosdtFWH1mQ3Fr2AC1FbJFDRyyB7tBzHNee4rNnl435qSIy7ke8LnglXuz1S+mq4KmP3opA9vmCs7Cczlf4UBlCzLuQ0fQ9P6ZmS0wmZgMQxLdCM1JPAWVVR7bTjZCuwR9O2SSsldJJOXa6nhZeZ4dwCuad1mhTVaF1G6xbbCbEtlaTAX0kbIqfLZ4OpsuDFcYkxKkp6eSJjGwiwLeaz7HqdjtFmhJwXYw2Vxse2i8q8YfUYNFhpha1kZFn8yr3Aqt9Nsy+qny2iuIRfUrE59EfrDsmTM7KOAvos0MqUStZgwmki82axIUeKCpqAXRyBzJgOJa7it1SnC3xSulMbjNlc2odd8bi33SRydbQryuGXXirCmnkYLMkc2/IGwWuum29mxqj0rpR6Bi2J4LBTyPaYqirdLvWiAENzAaZvBYKqG+lfI/V7yXOPiVNG0nW+pRviu3xVGc+5YjFlBWQ2JVFiEXFayuhu29tVnMUba6kpbH0mPxNpzFRYLMIq3I8AteLfVdOLm17Kn3hjka8cQbqSI60a7/wAI7IHXHGFCx4fG2TegZgChks4ffKZETrn8kJjm+UEORtvvv9UxYy33v+qexB+18oJjmH5QQhjLffJixl/vv9UwHOc/lISH/LCTgOUyCwH54QATjYaxgqFxv+WETgPnAoCG2+9HZMBf+IJMdZ3tRXCYBvzQnIHzmoEI3NyIhZNkd8tIeEze6IOPzm90g2aJhB03LB3Uh3TGhz4Wk9AUDpZidBYeSbeSHkeyQwnVDCLNp2hAJRwELOyNjZXi40HWyJzzG0hoLj8RCABB01hjA62TOqI2mzIGeJKF0055m3kmzy9L/wBqYCMzXG5iYkHh5sKeP6qVucC8mg8lG+eXgwZR5JAPvI2cYIyfAJnzg/kMsozLKOl/6UYkmOlv8qAB3zP+njUjdRmMEYanaXN1fYnplQunmPPTyQA7p42+5C3uonSRHUwDunMsnh2SbJK42Fj/AGoAbNEdNwD9Unuiboacd1LndG33Q53lwUTppjxsPojQiq2qqIW4S5jYsj3kAWK88q5M0hWt24qHufFETwaTZYuU+0VJAdFMfaCvsOeAG3WdgOoVxRvLQFkiQaNXQzBtrq4inBaLLKU8/DVWENVlHFZUyPSaSOcdVO2o0WcbV3Uratw4uNkdQdJf+seKQnF+KpG1WmpRipUJTJqJexTgnkrGkluRdZiGo4K2opySLqtY+xlijU05DgF06WVTRTXA14Lv3mnFUJt7LCOeuIylZfFiPaWhr3XB1WaxPW6nBiaMliupPmqSfir3FBqVRzhZ0Y35NBg8kT6CMPa8ltwSHLqJpyLZJP1Kp2ZmyiWJzQ4cdVamRoP3TLLKjGxyKYflv/Wm/wAN8D/1JnSA/lMQh4PGNqYhz6tyY/8AUhcafkyT9ScvaPymoTI21zE36JgL/DW1ZJf+pCXU4/Lk7pbxvy/3Tbxny/3QA7TTkEbuQf3KI7jhkk7qQyNtbdjuoy9l/uh3QAhuNbiUDzTf4c8pv2Szsv8Adjuk4s4iLTzQA2WmPDffsllp+svZK7Lfd/uhu35f7oA0rBUPdYZ/NSh27F/akPTko31MrtAco6BR7yTQZigA5Jal59om3khD5ALXcm3knAOKma57NZXnyS0AMYmfwLgOtkZkMTbNdnceJI0CjlqZnu0cQwcgg30vVGx6HMsjjq4pt5IOZS30lrXUrHPsHSPs1CERt373eySpTKYwWgku69EMtVITZhs1Rb+X4kwGMshvd7kxmlt7xRb2TqjY+VxtfTySQEbHzPNgSVMZjE32Tmf1twQy1LmDLGRfm6yiE8gHEdk2A+/lvcuKHfuvrY+YS38h427JCZwOrWn6JAYXbGd0mLSXPuiyzbj7SttpJjJidQ51wc50VPfVSQmdFOdQrSmdoqqD3vqrKDgFNEWWlO6w4rrY8WVfCbLpYVMR2skUjZDZcbXFSNck2SSOtshvxUzHriYVM11ljZJIsYH6q2oZDYBUML+CtqF/BYp+DJE01DJwViH+yqOifoBmVrE4FlrqjMzxBq9WklUGI2ylXtS72CqHESA0pwYSMpio1Ko5wr7EgLElUVRpcKwmYWT4BIWYiNAczSNVoTJc/ds/Ss5gQJxEPAu1guVojIy+sTe6yx8EWu4D5Nfcb2S3gI+7andMwH7pvdLeMP5IH1UiJG6T/ttTGQEaxtRPey+sQ7oS+L5Q7oE2MJGfKCbeR/KCRfEPy/3SzxfL/dCAWdnHdhAZGfLCJz4i22QjyKjJi+F/dMBbxnywiEkdsuQd0N4fhd3SLore67ugBFzeTAhMrR+WO6Jrovhd3SIiv7rkAaLen4W9kbDI7XI0DqQjDKWMhz87v5UM0kUhGd77Dg0DQIGI1DWaNY0uHOyjM+YkujaSfBL/AA55ydkiyA8HP7IDQO9HwN7J2yZjYMaSijpmPOjn2624KS9NEA2J7s3N9kBsYlrG3fGzN0so3z5yCY26Ji2Jx1mcT5JxHD8x3ZIQJlHKJnZMZdfu2dk7o4fmuH9qkjpo7bx0jsnQjigBoyHauibZKSoZbKyNtkzywmwkIHkh3UXzf2TAHeM+W1MZGD8ppR7mL5v7JbmH5v7JACJGnTcNTSZWuF4wPIrp3UMIuZbuI0BHBQObG43MzeyYGO2zwKeef16giD7j+JGDqT1CxdnNkLHtc1w4hwsQvZN23iJWn6FcGKYJhle29TA2R/JzfZI+qexpbPMYjYhd8MlgFeVuxRjvLS1bg3k2QXXBNs7jMVi2Jko/kcq7zKYy6ZS7lpcfkSh1xjtDxSAga6rpZIAOKrJKbEKY/wAaknb5NunbUuZo9j2+YKzxyKn4kYHjXRfeLLhrwQpGuVO2tHMFStr2D8Sn7kX4ZH25Lyi3a+ykbKFTfaDOOYd0/wBoN+Id1Fyj8goy+DQQS3Nla0Uoba6x0WJRt1Lx3XdBi7ANC53kCsMpw+TLGub8I3dHMLXurKGqAGq8/p8an4R087/JhXY2vxmUfwcPkF+b3WVOy6peZFqrFvn9sGa+rq2gaFUGJ1zGg5jouAwY7MBvqiCAHocxCePBWSua2pqZ6l5Pug2CoWcnj1/nZsqeDyrX3WimxKvic7IHgk8AFzU2H1VY7M8GGLmTx+i2ddhFNRRQbmnjY8g5iuPdPyONr+S2uLbG+CnE1WbjSxbXXLyjlo6ampYBGxrh1PMqQ7jm5/ZO6KT4SgdFJ8JVlIp7GIh45n/UJ7xaWceyHdSW9wptzJf3HJ7EFIIj+Nw+ijLYvmO7JzFLlPsOKiLJPlu7IEEWxfGeyWWP4z2QZJPlu7Jssg4sd2QhEhjjt97+yAsYDrL/AJUxDvhd2RStc6MODDfgdExjZWfN/wAqRYz5o7KJzZPgd2Q+18LuyAJSxnKYdk4At941Q69D2Ta9CgDUOa8m5a6/kkGvP4HH6Jt4/wCIomPmc6zC4lA2CWPtfIeymip3AF8wcG8gBqUYlMNwZM8nhwaonTynUyElMNikLyzIxpYzoOfmogwjkUW9k+Mp95J8RSEDl8Cm1UrZZT7IJJ6WUzpHQN9p2aQj3eQQBEyJjW7yUnwb1UcrpHG1jYcAnM8p4vv9Exml+P8AZAAajknAPREJ5fi/ZP6w/wDl7IAjIPRSjJC0PeMzz7o6KVkhjG8kDbn3RZQOqJHHM4MJPggCN5zm7jclBe2gCldM+/us/Sm3zvhZ+lAwAfBStie5geBpxS3zvgj/AEp9/IGi4bl5aIEPBcmz9QTwTz4e4DPSu1+A/wCydj8xBsB5LvpyTZcNy8unIej03gI9WHFlA+d0L8k8bmO/mCIPp36ujjd5tC0skMM7Mk0bZG9HBVtVs7TPdnpppID8PFq1fvS/DNu6Yb7xRWmKidq6lgP9oQ+pYY8a0cP6VLLgWKsJ3L4ZxyF7FcslLi8NxJQy/wBuqauu/EmL6eh+YIkGHYUOFFB+lIUGFg3FFB+lcT31zXWNFU//ABlRPqqljsrqaZrrcCwqSsvf+5kXTjR/2ItWQUMZ9ilgaf6ApWywAWEUY8mBUzZK6Qjd0cp+ll2Q4di0pF444gebnKLlb+ZBGqlfbFHealrbWsgkrGAWvcnkNVPTYA5wBqqxx8GCytaKgpKUfwoRm+I6lY23+WZ0kvCKyjoqysdcgwRdXjU+QV3RUcNJHZgzP5vPEqdhuE7uCxNEkyl2p1hhI+IqgP3J81oNoiBHFcXFyqN7odyQWO1PJy77hv8AFieY+oP82TOYkprnkSpSYNPYfoPiQf4f4ZO62xpALu+I90LnO4XPdHeC/wCam/gf9xIWhszsp1Onios7xwce66YGRPc9okf7vRQWh19qTsmAO8f8Z7pbx/xnukdzyc/smtF8xw+iAHMj/iPdPG+R4cM54aaockXznfpSYxgcDvv2QBG6SUH3z3Tb2X4j3U0scee+9Fj4KJ0cY4TfsmxMQll+MhLey/GmLGW++HZNlZ88dkIEaplI52rpGMb1JUzyWs3cDmNbzdfUrjkmklfmdYDkBwCZBMnENhbOzum3LuJkj7qCyceSBaJRE6+hafqjZTTPdZob55lHDG6R9mjhxPRTTSNZHuYfd/E7m4oAkMboWlkJa554vv8A6Ln3MvE2J/qUQskmIkMMvQd0Jhl6N/UhvohtqkBJuZT+DsVNT0zmjeSs0HBp5lRRMDYzLKXBv4W/Eo5Jnvdcm1tABwCPIE0rKiR5c5hUZhmv925Q53/EUg9/xHugAzDNzjd2TbmX5buybO+/vHuizvcQ0ONyeqBhQ000srWBhF+ZCOpa4vLWRuyt0GiKd5iiEbXHMfeN1yl7j+M90CbOiIOZa4IPirGnNwDdVcLieLibdSrOm4ALhebWshnpnpx7w0djFIo2KQeK0ujoAmXBuCpmnRRNRi6CDE8nqqPHD/iI3E65Vdu8VR49ffR25N/3WfFbcmVsrWkDTD2QSV2x6ALhpfdXay4Ausc29lqKWjpYbi6NqhaVM06KGxsmHBJ3BC0pOOiREptqvuYD/Mf9FQP+6Hir7aSQiKCwB9o8VSyzWYy7GHnwXfcKv9LE8z9Qf5kjldwQ3UpmBP3MabeD5LFtTSEaHXxUplHOKNC6SM8Ym/QlCENG60gPBBKLPNuqLeMHCJvcp55GF33I4dUwICExCkzx/K/zJi+K2sX+ZMRHZMDrxUofAfyyP7k96fkx3dAAuGaMO6cVC6y6AYeAz2KjkbC1xBDwQgNEJITX8Uf8D4npf4f+dIRqRA6988Y+qW5/7sfdc/1TjXopE2ybcuto9h8LqSCmlkNzZrBxcTwQQQNI3k0gZHyHNyGeYPGRgyRjgEhI6ZBIW7mFoDB/MLu81DuJubR3XPfoUQcepQBMIJb+4O6cwS9B3UNyeZSPVMRL6vL8F/qpIaV997KLMbyv7xQU7WlpllJEbeOurj0CCokdK+59lo91o4BIA6hk8r8xZpyAI0UG4m+AoCSOZSzEfiPdPQBbmUfluKW6l+W7shzv5Od3Szv+M90hD5JBxY7spmRuhZvS05z7ot+6CnD3vJc9wa3Um6aWd0khdmcBwGqBgESEkua7XwSyu+E9kt7J8Z7ohNL8ZS8DSbYcDTfUEfRWVOLAKXD8Okmo2zSOOZ+o8l2RUBGhXD8s423txPTOCrdOKlIiaNVI2662UJtfMjFC7qtU6JG691HK0G/FSZV2Q0NtS5dDaaJo1R7LMbtWyqcCqPHh/Ei8WkLVzxMOgVJilI6plbG0fd6k+alSvbkzHavcSKulva4XczgE0FFI0ZSCuyOkfzalKDbLMZLRCxTNU7aR1h7KkZSPvwS9pg5pHOwFO4G3BWEdETxNrJpqduUgEJOp6IKxbMntRpDB/WVRT6tZ5LU7TwAUBktcxOvwWX3twbxtP1Xb8LJfTJHnPqGLWW38kKSIyRc4tf6kJlh+Sf1LbaNEA7imdwujzU7uLHj+5K9N0k/UmIiCKb8Pknc6nH4ZO6O9O6G5EgI5lPYHMmIClJpwNHSH6ISYOsg8xdAiMhCTZS2hOm8cP7Uzmw/NP6UbAAHxTy+03MeNki2IcJD+lExsTwYt6SSNPZ4IDZzJrKXdsvpMPq1LdN+c390AaELojhbGwS1BFvwsvq5T791O0GXK6Q/gt7vmud1XK9xLrOPiEEgJZTK/M8i/IDkgUpqH2OjP0hDv3fCz9KAAHFOL9EW+Pwx/pRCb/tx9kCIyD1U1PEZL5nZY26ud0RwESXe6OMRt951k0lU1wLGRMEQOgtx8UxATyGV1mtyxt0aFGdAjMzfkRpb5nyWdkD0Qk3KY2upjJEfyW/Qoc0Xyh3KNhoC/RPGwveGDif2RZ4723X+Yroe6GlYGtjJkePas7h4JCIKh4aNzGRlHEj8RUF1KZIPkut/WkHwEfduH9yARGCumghE1Uxh92+vkor0/HLJ3XXhj42ThzA7pqqmdb7VEpGx4uj38qMDXQ5N2GtFgBYDopWtbZcNM8lt12NN9Fwz3J7Z6ZGKhHSJBoNEt4baJAHhdPk0TUZINoDeO4XSzO8e6lbGLJ92EOLI9SOd97E3XDRvBDi46lx16ruq25IXuvwaSqLD5szBY3WJoyRLkAeCJmhUULrhTNbfgpxTBsNrrIhJZCGngnDPJS0yLY5lPLgoi4kqXdlA5trpSQkVuMQmWjnjuBmYVgX2bdrV6DWvsHDjosDNG90zz7OrjzXRcDPqjJfBx3qeGpwl8nM4plK6CW+jCUG4m+AroWcqRJXUhhlv927sluJvluQMiPBSNtu3BMYJvluRxMkuWmN2o6I0Ig16oH+aMtd8LuyFzT8Lr+SYgExREEcQeyY+IPZINDcOaZri14cDqDdOgKaFokqGFkhHI6g9VEp828hPWP/RQaIGal5LiXEkknUlApDDNzif+lNupflu7I2Zfbn8AlCpN1L8t3ZDkd8J7I2L25fAIU1PEZHHMcsbdXOPJPBTmV5BORoFyTyT1Egy7iIHdt583HqjaF0v4FUzZwGRjLE3Ro6+JUPKyVjwSIKNh0v4EmKR8x3QknqgNNeR0rpj/AP2iOCPO/U5WjVx6BDEyWltGw1LxoNGDqVA5xc4lxuTxRTSZ7ACzG6NCi5oI6HPHkmSJTXQPp0OuugNnLjueilp3lrlR5Gt2Y8lE2nDXRqzISl4NFTTkAaqwhqrHiqKCW4XXHJbiuC9xxej1LoUltF42pB1KMVYtyVLvPFOJrBN5BH2EXLaoXRuqhl5KkEvQp99fioPIbF7B1V9TeGTXTIVnaCfK0ZVZVEmaN7b8QQqKlJY61+BslGbfcl0JdjS0lQCAea74qhltbLOwyW4FdbJDbipxyNA6dl42pZwT+sx+CphL4p96eqn75B0l2J4yOICjnnZl0cqts+nFA+a/NQlkbWhRp0xVkoLXu6AlYR7gXuI5lajGajdUpa0+1IcoWWnGWVzRyK6n0/VKNUpv8nE+qbYyujBfgEnxKYu8SmKZdAcqOXn4imzO+I90DjYpwbp6ATnO+IooHvErfaPdAbJs2VwPQ3TEw5JpGvID3DXqgM0vzHd09QAJSeuqjJQLQW+l5yO7pGaQ/jKiKVwjQbJN/IOY7JesP8OyjJCG6AOiGf8AiWcG+1odFG6VzXFpay4/lUROlxxXQ0RSDO8kOPFA9Gj9bqPnSd0/rlT89/dc5KV0tGX37Pk6fXqkfnP7qSGpqppA1shHMnoFyQxPnlEcYueZ6BSzStYw08JOX8TviR0j96fyTz17y7LFIcrdL295Rium+IfpC5RwslwR0h781+Ts9el/k8y0JvX5v5D/AGhcdynv4J9I/qJ/J1+vy82RHzYExrL8YIf0LlLkiUunQPImzqZVF7w1tPCSdB7COoqo4yYWxRO+PTS6hb/h4w/8140HQdVyk6+KfSJXTOr1qPj6vF2KZ1RAeNNF9CVzEoSQl0j9+R0men/6WPuU++pudM36OK5CUrjojQfUS+EdW+pf+nP6ylvqcHSA/rXLfVSU7RJJro1urj4JOO1pjWRJPejtbMI3t0yhwvYm9l3RzNNrEKimlMkpfa1+HgEm1EjdA4rnM3gvdl1VvR1PH+p/aj0XLZpBIOqRkCz4rpgNCka+fqOy1T9PZW+2jcf1Tha77L7eCyAzWub2VCa6c/jsoZJ5HHVxWar03a/vZgt9WURX8cdl1NXRAFu8IJ0uG3suWOIGnkqo5s7Y3BrrttqVWF2hurCscaXAKSlv7c73TuHhwC274emNXtryaCfqPJncrGdlPKHNBuuqN4Kzcc72HQrqZiLmjhdaTI4HIg/4+502L6nxbI/y9mXzXeKLPpxVF9qkfhSOKjmxVP0jM/4lz9ewP+Ze7xRyzNa27nAAc7qifir7HILea4qipmm955I6K7jenrpPdvZGvy/VGNCLVK2yxr3TVVSwtdFu2HS0mpXFLR1Bc4kNOvHOFz0xtUA+BKiLiXk3Oq66ihUVqETicjKWRY5z8snNFU/LH6gl6nVA23R7hc5cb63P1TF7uFz3WVbK/wDESvo6u/8Ay70PqlUPyJP0qMySDg9w+qQnlH5r/wBRT/cS1USer1A/Ik/SgfDPzgkH9pSFTPa29f8AqKQq6gcJ5P1FHcXTWFUROGQljhdo4gqAtPQ9iug19Xu2/wAZ2mlybphiFTzkKE2R6a/k5XNNuB7INQuw4hVcpP2CH1+p+Jp/tCexdFfycuqV/FdDq6YjVsf6Aka6Qixji/QEw6a1+Tn0skDpwUxrSBrBAf7EPrzedLBf+lHci4x+S/S5XSSQROuf/DxMgj0ztD3u5nwXIeKSSAEEikkgBJJJKSAVlNRRiSb2uDRmt1skkgCOaR0khe7iVGUkkmCBKGySSQMYpAJJIAccQF0lojoA5vGQkE+CSSAORM7ikkgaGKZJJJj0MmKSSRETbOkY06guAPdWG0zv/V3wgWZCxsbAOQASSWJ/cLZW31skeKSSyokA7zTHikklsASTdNdJJNMNBwn2z5FQX4JJKRASSSSZLQLtEGYpJJgK5TXSSQGyVgDqWS44OBC50klEPyJJJJAmC5MUklFiBI0QJJKUfAH/2Q==" alt="Mascote Onfly">
+    </div>
+    <div class="login-logo">
+      <div class="login-dot"></div>
+      <span class="login-title">Talent Control</span>
+    </div>
+    <div class="login-sub">Onfly · Recrutamento & Seleção<br>Entre com seu e-mail corporativo</div>
+    <div class="login-field"><label>E-mail</label><input id="login-email" type="email" placeholder="seu@onfly.com.br"></div>
+    <div class="login-field"><label>Senha</label><input id="login-senha" type="password" placeholder="••••••••"></div>
+    <button class="login-btn" onclick="fazerLogin()">Entrar</button>
+    <button onclick="limparCacheERecarregar()" style="width:100%;padding:8px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;margin-top:8px;text-decoration:underline">Problemas para entrar? Clique aqui para limpar cache</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+<div class="topbar">
+  <div class="brand-logo">
+    <div class="brand-dot"></div>
+    <span class="brand-name">Talent Control <span class="brand-sub">Onfly R&S</span></span>
+  </div>
+  <div class="nav-tabs" id="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="label">Dashboard</span></button>
+    <button class="nav-tab" id="tab-btn-vagas" onclick="switchTab('vagas')"><i class="ti ti-briefcase"></i><span class="label">Vagas</span></button>
+    <button class="nav-tab" id="tab-btn-admissoes" onclick="switchTab('admissoes')"><i class="ti ti-users"></i><span class="label">Admissões</span></button>
+    <button class="nav-tab" id="tab-btn-alertas" onclick="switchTab('alertas')"><i class="ti ti-bell"></i><span class="label">Alertas</span></button>
+    <button class="nav-tab" id="tab-btn-usuarios" onclick="switchTab('usuarios')" style="display:none"><i class="ti ti-shield"></i><span class="label">Usuários</span></button>
+  </div>
+  <div class="topbar-right">
+    <div class="user-badge">
+      <span id="user-nome-top"></span>
+      <span class="user-perfil" id="user-perfil-top"></span>
+    </div>
+    <button class="btn-logout" onclick="fazerLogout()"><i class="ti ti-logout"></i> Sair</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="page active">
+  <div class="month-selector" style="flex-wrap:wrap;gap:10px;align-items:center">
+    <label>Período:</label>
+    <select id="mes-filtro" onchange="renderDashboard()"></select>
+    <label style="margin-left:8px">Recrutadora:</label>
+    <select id="dash-recrut" onchange="renderDashboard()" style="border:0.5px solid var(--border);border-radius:9px;padding:8px 13px;font-size:13px;color:var(--text);background:#fff;outline:none">
+      <option value="">Todas</option>
+      <option>Thainá</option><option>Lara</option><option>Fernanda</option><option>Iohana</option>
+      <option>Sarah</option><option>Suemy</option><option>Bruna</option><option>Tainá</option>
+      <option>Sânia</option>
+    </select>
+    <label style="margin-left:8px">Área:</label>
+    <select id="dash-area" onchange="renderDashboard()" style="border:0.5px solid var(--border);border-radius:9px;padding:8px 13px;font-size:13px;color:var(--text);background:#fff;outline:none">
+      <option value="">Todas</option>
+      <option>Atendimento</option>
+      <option>Comercial</option>
+      <option>Tecnologia</option>
+      <option>Backoffice / Operações</option>
+    </select>
+    <button class="btn btn-export" onclick="exportDashboardCSV()"><i class="ti ti-download"></i> Exportar dados</button>
+  </div>
+  <p class="section-title">Visão Geral · Previsto vs Realizado</p>
+  <div class="kpi-grid" id="kpi-container"></div>
+  <div class="row">
+    <div class="card"><div class="card-title"><i class="ti ti-chart-bar"></i> Vagas por Setor</div><div class="chart-wrap"><canvas id="chart-setor"></canvas></div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-user-check"></i> Admissões por Recrutadora</div><div class="chart-wrap"><canvas id="chart-recrut"></canvas></div></div>
+  </div>
+  <div class="row">
+    <div class="card"><div class="card-title"><i class="ti ti-target"></i> Progresso por Recrutadora</div><div id="progress-recrut"></div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-chart-donut"></i> Status das Admissões</div><div class="chart-wrap" style="height:180px"><canvas id="chart-status"></canvas></div><div class="donut-legend" id="status-legend"></div></div>
+  </div>
+  <div class="card"><div class="card-title"><i class="ti ti-table"></i> Admissões por Área · Origem</div><div class="chart-wrap"><canvas id="chart-origem"></canvas></div></div>
+</div>
+
+<!-- VAGAS -->
+<div id="tab-vagas" class="page">
+  <div class="toolbar">
+    <p class="section-title" style="margin:0">Controle de Vagas</p>
+    <div class="toolbar-right">
+      <button class="btn btn-export" onclick="exportVagasCSV()"><i class="ti ti-download"></i> Exportar CSV</button>
+      <button class="btn btn-primary" id="btn-nova-vaga" onclick="openModal('modal-vaga')"><i class="ti ti-plus"></i> Nova Vaga</button>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <select id="f-vaga-setor" onchange="renderVagas()"><option value="">Todos os setores</option><option>Atendimento</option><option>Comercial</option><option>Tecnologia</option><option>Backoffice / Operações</option></select>
+    <select id="f-vaga-recrut" onchange="renderVagas()"><option value="">Todas as recrutadoras</option><option>Thainá</option><option>Lara</option><option>Fernanda</option><option>Iohana</option><option>Sarah</option><option>Suemy</option><option>Bruna</option><option>Tainá</option></select>
+    <select id="f-vaga-mes" onchange="renderVagas()"></select>
+    <input id="f-vaga-busca" placeholder="Buscar vaga..." oninput="renderVagas()" style="min-width:180px">
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Vaga</th><th>Qtd</th><th>Recrutadora</th><th>Líder</th><th>Setor</th><th>Mês</th><th>Meta</th><th>Realizado</th><th>Progresso</th><th>Status</th><th></th></tr></thead>
+    <tbody id="tbody-vagas"></tbody></table>
+  </div>
+</div>
+
+<!-- ADMISSOES -->
+<div id="tab-admissoes" class="page">
+  <div class="toolbar">
+    <p class="section-title" style="margin:0">Controle de Admissões</p>
+    <div class="toolbar-right">
+      <button class="btn btn-export" onclick="exportAdmCSV()"><i class="ti ti-download"></i> Exportar CSV</button>
+      <button class="btn btn-export" onclick="document.getElementById('import-csv-input').click()" style="background:#e6f9ef;color:#166a3e"><i class="ti ti-upload"></i> Importar CSV</button>
+      <input type="file" id="import-csv-input" accept=".csv" style="display:none" onchange="importarCSV(event)">
+      <button class="btn btn-danger" id="btn-deletar-selecionados" onclick="deletarSelecionados()" style="display:none"><i class="ti ti-trash"></i> Deletar Selecionados (<span id="count-selecionados">0</span>)</button>
+      <button class="btn btn-primary" id="btn-nova-adm" onclick="openModal('modal-admissao')"><i class="ti ti-plus"></i> Nova Admissão</button>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <select id="f-adm-mes" onchange="renderAdmissoes()"></select>
+    <select id="f-adm-area" onchange="renderAdmissoes()"><option value="">Todas as áreas</option><option>Atendimento</option><option>Comercial</option><option>Tecnologia</option><option>Backoffice / Operações</option></select>
+    <select id="f-adm-status" onchange="renderAdmissoes()"><option value="">Todos os status</option><option>Concluída</option><option>Em Andamento</option><option>Pendente</option><option>Desistente</option></select>
+    <select id="f-adm-recrut" onchange="renderAdmissoes()"><option value="">Todas as recrutadoras</option><option>Thainá</option><option>Lara</option><option>Fernanda</option><option>Iohana</option><option>Sarah</option><option>Suemy</option><option>Bruna</option><option>Tainá</option></select>
+    <input id="f-adm-busca" placeholder="Buscar nome ou cargo..." oninput="renderAdmissoes()" style="min-width:180px">
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th style="width:40px"><input type="checkbox" id="check-all-adm" onchange="toggleAllAdm(this)"></th><th>Nome Completo</th><th>Cargo</th><th>Área</th><th>Admissão</th><th>Origem</th><th>Recrutadora</th><th>Status</th><th>Time</th><th>Gestor</th><th></th></tr></thead>
+    <tbody id="tbody-admissoes"></tbody></table>
+  </div>
+</div>
+
+<!-- ALERTAS -->
+<div id="tab-alertas" class="page">
+  <p class="section-title">Central de Alertas</p>
+  <div id="alertas-container"></div>
+</div>
+
+<!-- USUARIOS (só master) -->
+<div id="tab-usuarios" class="page">
+  <div class="toolbar">
+    <p class="section-title" style="margin:0">Gerenciar Usuários</p>
+    <button class="btn btn-primary" onclick="openModal('modal-usuario')"><i class="ti ti-plus"></i> Novo Usuário</button>
+  </div>
+  <div id="lista-usuarios"><div class="loading">Carregando usuários...</div></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL VAGA -->
+<div class="modal-overlay" id="modal-vaga">
+<div class="modal">
+  <div class="modal-title" id="modal-vaga-title"><i class="ti ti-briefcase" style="color:var(--orange)"></i>Registrar Nova Vaga</div>
+  <div class="form-grid">
+    <div class="field full"><label>Nome da Vaga *</label><input id="v-nome" placeholder="Ex: Analista de Dados Senior"></div>
+    <div class="field"><label>Quantidade *</label><input id="v-qtd" type="number" min="1" value="1"></div>
+    <div class="field"><label>Recrutadora *</label><select id="v-recrut"><option value="">Selecionar...</option><option>Thainá</option><option>Lara</option><option>Fernanda</option><option>Iohana</option><option>Sarah</option><option>Suemy</option><option>Bruna</option><option>Tainá</option></select></div>
+    <div class="field"><label>Líder Responsável</label><input id="v-lider" placeholder="Nome do gestor"></div>
+    <div class="field"><label>Setor *</label><select id="v-setor"><option value="">Selecionar...</option><option>Atendimento</option><option>Comercial</option><option>Tecnologia</option><option>Backoffice / Operações</option></select></div>
+    <div class="field"><label>Meta do Mês *</label><input id="v-meta" type="number" min="1" value="1"></div>
+    <div class="field"><label>Conclusões Realizadas</label><input id="v-conclusao" type="number" min="0" value="0"></div>
+    <div class="field"><label>Mês de Referência *</label><select id="v-mes"></select></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="closeModal('modal-vaga')">Cancelar</button>
+    <button class="btn btn-primary" id="btn-salvar-vaga" onclick="salvarVaga()"><i class="ti ti-check"></i> Salvar Vaga</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL ADMISSAO -->
+<div class="modal-overlay" id="modal-admissao">
+<div class="modal">
+  <div class="modal-title" id="modal-adm-title"><i class="ti ti-user-plus" style="color:var(--orange)"></i>Registrar Admissão</div>
+  <div class="form-grid">
+    <div class="field full"><label>Nome Completo (sem abreviações) *</label><input id="a-nome" placeholder="Ex: Ana Paula Souza Ferreira"></div>
+    <div class="field full"><label>Cargo (igual à proposta) *</label><input id="a-cargo" placeholder="Ex: Analista de Dados Senior"></div>
+    <div class="field"><label>Área *</label><select id="a-area"><option value="">Selecionar...</option><option>Atendimento</option><option>Comercial</option><option>Tecnologia</option><option>Backoffice / Operações</option></select></div>
+    <div class="field"><label>Data de Admissão</label><input id="a-data" type="date"></div>
+    <div class="field"><label>Origem</label><select id="a-origem"><option value="">Selecionar...</option><option>Captação Externa</option><option>Captação Interna</option></select></div>
+    <div class="field"><label>Recrutadora</label><select id="a-recrut"><option value="">Selecionar...</option><option>Thainá</option><option>Lara</option><option>Fernanda</option><option>Iohana</option><option>Sarah</option><option>Suemy</option><option>Bruna</option><option>Tainá</option></select></div>
+    <div class="field"><label>Status *</label><select id="a-status"><option value="">Selecionar...</option><option>Concluída</option><option>Em Andamento</option><option>Pendente</option><option>Desistente</option></select></div>
+    <div class="field"><label>Time</label><input id="a-time" placeholder="Ex: Data Analytics"></div>
+    <div class="field"><label>Gestor Direto</label><input id="a-gestor" placeholder="Nome do gestor"></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="closeModal('modal-admissao')">Cancelar</button>
+    <button class="btn btn-primary" id="btn-salvar-adm" onclick="salvarAdmissao()"><i class="ti ti-check"></i> Salvar Admissão</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL IMPORT PREVIEW -->
+<div class="modal-overlay" id="modal-import">
+<div class="modal" style="max-width:800px">
+  <div class="modal-title"><i class="ti ti-upload" style="color:var(--orange)"></i>Importar Admissões</div>
+  <div id="import-preview"></div>
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="closeModal('modal-import')">Cancelar</button>
+    <button class="btn btn-primary" id="btn-confirmar-import" onclick="confirmarImport()"><i class="ti ti-check"></i> Confirmar Importação</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modal-usuario">
+<div class="modal">
+  <div class="modal-title"><i class="ti ti-user-plus" style="color:var(--orange)"></i>Novo Usuário</div>
+  <div class="form-grid">
+    <div class="field full"><label>Nome Completo *</label><input id="u-nome" placeholder="Ex: Thainá Oliveira"></div>
+    <div class="field"><label>E-mail *</label><input id="u-email" type="email" placeholder="thaina@onfly.com.br"></div>
+    <div class="field"><label>Senha inicial *</label><input id="u-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
+    <div class="field"><label>Perfil *</label>
+      <select id="u-perfil">
+        <option value="">Selecionar...</option>
+        <option value="editora">Editora (cadastra e edita)</option>
+        <option value="leitor">Leitor (só Dashboard)</option>
+        <option value="master">Master (acesso total)</option>
+      </select>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="closeModal('modal-usuario')">Cancelar</button>
+    <button class="btn btn-primary" onclick="criarUsuario()"><i class="ti ti-check"></i> Criar Usuário</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://rszcfvptvdvpyrwmegxw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzemNmdnB0dmR2cHlyd21lZ3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODUwMTcsImV4cCI6MjA5NDg2MTAxN30.o-I6yPbXwOd1GqOnf-5Oh1QBPYTvMW-IeAORx19h_5E';
+let sb;
+try {
+  const { createClient } = supabase;
+  sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('Supabase inicializado OK');
+} catch(e) {
+  console.error('Erro ao inicializar Supabase:', e);
+}
+
+let currentUser = null;
+let currentPerfil = null;
+let vagas = [];
+let admissoes = [];
+let charts = {};
+
+// Generate month options dynamically for all selectors
+function popularSeletoresMes() {
+  const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const hoje = new Date();
+  const anoAtual = hoje.getFullYear();
+  const mesAtual = hoje.getMonth() + 1;
+
+  // Dashboard filter: all + month/year combos
+  const dash = document.getElementById('mes-filtro');
+  if (dash) {
+    dash.innerHTML = '<option value="all">Todos os meses</option>';
+    for (let ano = 2026; ano <= anoAtual + 2; ano++) {
+      for (let mes = 1; mes <= 12; mes++) {
+        const opt = document.createElement('option');
+        opt.value = ano + '-' + mes;
+        opt.textContent = nomesMes[mes-1] + ' ' + ano;
+        if (ano === anoAtual && mes === mesAtual) opt.selected = true;
+        dash.appendChild(opt);
+      }
+    }
+  }
+
+  // Admissoes filter
+  const admMes = document.getElementById('f-adm-mes');
+  if (admMes) {
+    admMes.innerHTML = '<option value="">Todos os meses</option>';
+    for (let ano = 2026; ano <= anoAtual + 2; ano++) {
+      for (let mes = 1; mes <= 12; mes++) {
+        const opt = document.createElement('option');
+        opt.value = ano + '-' + mes;
+        opt.textContent = nomesMes[mes-1] + ' ' + ano;
+        admMes.appendChild(opt);
+      }
+    }
+  }
+
+  // Vagas filter
+  const vagaMes = document.getElementById('f-vaga-mes');
+  if (vagaMes) {
+    vagaMes.innerHTML = '<option value="">Todos os meses</option>';
+    for (let ano = 2026; ano <= anoAtual + 2; ano++) {
+      for (let mes = 1; mes <= 12; mes++) {
+        const opt = document.createElement('option');
+        opt.value = ano + '-' + mes;
+        opt.textContent = nomesMes[mes-1] + ' ' + ano;
+        vagaMes.appendChild(opt);
+      }
+    }
+  }
+
+  // Modal vaga mes selector (simple month+year)
+  const vMes = document.getElementById('v-mes');
+  if (vMes) {
+    vMes.innerHTML = '';
+    for (let ano = 2026; ano <= anoAtual + 2; ano++) {
+      for (let mes = 1; mes <= 12; mes++) {
+        const opt = document.createElement('option');
+        opt.value = ano + '-' + mes;
+        opt.textContent = nomesMes[mes-1] + ' ' + ano;
+        if (ano === anoAtual && mes === mesAtual) opt.selected = true;
+        vMes.appendChild(opt);
+      }
+    }
+  }
+}
+let editingVagaId = null;
+let editingAdmId = null;
+
+const meses = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const CORES = ['#1a4b8c','#f5841f','#22a05a','#d93025','#7c5bbf','#e8a020','#0891b2','#be185d'];
+const setorChip = {'Atendimento':'chip-atend','Comercial':'chip-com','Tecnologia':'chip-tec','Backoffice / Operações':'chip-back'};
+const statusColors = {'Concluída':'success','Em Andamento':'info','Pendente':'warning','Desistente':'danger'};
+const statusDot = {'Concluída':'dot-success','Em Andamento':'dot-info','Pendente':'dot-warning','Desistente':'dot-danger'};
+
+// AUTH
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  const err = document.getElementById('login-err');
+  err.style.display = 'none';
+  if (!email || !senha) { mostrarErroLogin('Preencha e-mail e senha.'); return; }
+  try {
+    // Sign out first to clear any stale session
+    await sb.auth.signOut();
+    await new Promise(r => setTimeout(r, 300));
+    
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (error) { mostrarErroLogin('E-mail ou senha incorretos.'); return; }
+    
+    // Get fresh session after login
+    await new Promise(r => setTimeout(r, 500));
+    const { data: sessionData } = await sb.auth.getSession();
+    const user = sessionData?.session?.user || data?.user;
+    
+    if (user) {
+      await iniciarApp(user);
+    } else {
+      mostrarErroLogin('Erro ao obter sessão. Tente novamente.');
+    }
+  } catch(e) {
+    mostrarErroLogin('Erro de conexão. Tente novamente.');
+  }
+}
+
+function mostrarErroLogin(msg) {
+  const err = document.getElementById('login-err');
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+async function iniciarApp(user) {
+  currentUser = user;
+  let profile = null;
+  let tentativas = 0;
+  // Retry up to 3 times with delay - handles session timing issues
+  while (!profile && tentativas < 3) {
+    tentativas++;
+    try {
+      const r1 = await sb.from('profiles').select('*').eq('id', user.id);
+      if (r1.data && r1.data.length > 0) { profile = r1.data[0]; break; }
+      const r2 = await sb.from('profiles').select('*').eq('email', user.email);
+      if (r2.data && r2.data.length > 0) { profile = r2.data[0]; break; }
+    } catch(e) {}
+    if (!profile && tentativas < 3) await new Promise(r => setTimeout(r, 1000));
+  }
+  if (!profile) { mostrarErroLogin('Perfil não encontrado. Contate a administradora.'); await sb.auth.signOut(); return; }
+  currentPerfil = profile.perfil;
+  document.getElementById('user-nome-top').textContent = profile.nome || user.email;
+  document.getElementById('user-perfil-top').textContent = currentPerfil;
+  aplicarPermissoes();
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  await carregarDados();
+  renderDashboard();
+}
+
+function aplicarPermissoes() {
+  // Aba usuarios só para master
+  if (currentPerfil === 'master') {
+    document.getElementById('tab-btn-usuarios').style.display = 'flex';
+  }
+  // Leitor só vê dashboard — esconde outras abas
+  if (currentPerfil === 'leitor') {
+    document.getElementById('tab-btn-vagas').style.display = 'none';
+    document.getElementById('tab-btn-admissoes').style.display = 'none';
+    document.getElementById('tab-btn-alertas').style.display = 'none';
+  }
+}
+
+function limparCacheERecarregar() {
+  try {
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) { r.unregister(); });
+      });
+    }
+    localStorage.clear();
+    sessionStorage.clear();
+    caches.keys().then(function(names) {
+      names.forEach(function(name) { caches.delete(name); });
+    });
+  } catch(e) {}
+  setTimeout(function() { window.location.reload(true); }, 500);
+}
+
+async function fazerLogout() {
+  await sb.auth.signOut();
+  currentUser = null; currentPerfil = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-senha').value = '';
+}
+
+// Verifica sessão existente
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session && session.user && !currentUser) {
+    await iniciarApp(session.user);
+  }
+  if (event === 'SIGNED_OUT') {
+    currentUser = null;
+    currentPerfil = null;
+  }
+});
+
+// DADOS
+async function carregarDados() {
+  const { data: v } = await sb.from('vagas').select('*').order('created_at', { ascending: false });
+  const { data: a } = await sb.from('admissoes').select('*').order('created_at', { ascending: false });
+  vagas = v || [];
+  admissoes = a || [];
+  popularSeletoresMes();
+  renderVagas();
+  renderAdmissoes();
+}
+
+// TOAST
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.innerHTML = (type === 'success' ? '<i class="ti ti-circle-check"></i>' : '<i class="ti ti-alert-circle"></i>') + ' ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// TABS
+function switchTab(name) {
+  if (currentPerfil === 'leitor' && name !== 'dashboard') return;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabs = ['dashboard','vagas','admissoes','alertas','usuarios'];
+  const btns = document.querySelectorAll('.nav-tab');
+  const visibleBtns = [...btns].filter(b => b.style.display !== 'none');
+  const tabMap = { dashboard:0, vagas:1, admissoes:2, alertas:3, usuarios:4 };
+  const btn = document.getElementById('tab-btn-' + name) || btns[0];
+  if (btn) btn.classList.add('active');
+  else btns[0].classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'vagas') renderVagas();
+  if (name === 'admissoes') renderAdmissoes();
+  if (name === 'alertas') renderAlertas();
+  if (name === 'usuarios') renderUsuarios();
+}
+
+// MODAIS
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modal-vaga') resetModalVaga();
+  if (id === 'modal-admissao') resetModalAdm();
+}
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => {
+  if (e.target === m) { m.classList.remove('open'); resetModalVaga(); resetModalAdm(); }
+}));
+
+function resetModalVaga() {
+  editingVagaId = null;
+  document.getElementById('modal-vaga-title').innerHTML = '<i class="ti ti-briefcase" style="color:var(--orange)"></i>Registrar Nova Vaga';
+  document.getElementById('btn-salvar-vaga').innerHTML = '<i class="ti ti-check"></i> Salvar Vaga';
+}
+function resetModalAdm() {
+  editingAdmId = null;
+  document.getElementById('modal-adm-title').innerHTML = '<i class="ti ti-user-plus" style="color:var(--orange)"></i>Registrar Admissão';
+  document.getElementById('btn-salvar-adm').innerHTML = '<i class="ti ti-check"></i> Salvar Admissão';
+}
+
+// VAGAS
+async function salvarVaga() {
+  if (currentPerfil === 'leitor') return;
+  const nome = document.getElementById('v-nome').value.trim();
+  const recrut = document.getElementById('v-recrut').value;
+  const setor = document.getElementById('v-setor').value;
+  if (!nome) { toast('Informe o nome da vaga', 'error'); return; }
+  if (!recrut) { toast('Selecione a recrutadora', 'error'); return; }
+  if (!setor) { toast('Selecione o setor', 'error'); return; }
+  const mesVal = document.getElementById('v-mes').value;
+  let mesNum = new Date().getMonth() + 1;
+  let anoNum = new Date().getFullYear();
+  if (mesVal && mesVal.includes('-')) {
+    const mesParts = mesVal.split('-');
+    anoNum = parseInt(mesParts[0]);
+    mesNum = parseInt(mesParts[1]);
+  }
+  const dados = {
+    nome,
+    qtd: parseInt(document.getElementById('v-qtd').value) || 1,
+    recrutadora: recrut,
+    lider: document.getElementById('v-lider').value.trim(),
+    setor,
+    meta: parseInt(document.getElementById('v-meta').value) || 1,
+    conclusao: parseInt(document.getElementById('v-conclusao').value) || 0,
+    mes: mesNum
+  };
+  if (editingVagaId) {
+    const { error } = await sb.from('vagas').update(dados).eq('id', editingVagaId);
+    if (error) { toast('Erro ao atualizar', 'error'); return; }
+    toast('Vaga atualizada!');
+  } else {
+    const { error } = await sb.from('vagas').insert(dados);
+    if (error) { toast('Erro ao salvar', 'error'); return; }
+    toast('Vaga salva!');
+  }
+  closeModal('modal-vaga');
+  limparFormVaga();
+  await carregarDados();
+}
+
+function limparFormVaga() {
+  ['v-nome','v-lider'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('v-qtd').value = '1';
+  document.getElementById('v-meta').value = '1';
+  document.getElementById('v-conclusao').value = '0';
+  document.getElementById('v-recrut').value = '';
+  document.getElementById('v-setor').value = '';
+}
+
+function editarVaga(id) {
+  if (currentPerfil === 'leitor') return;
+  const v = vagas.find(x => x.id === id); if (!v) return;
+  editingVagaId = id;
+  document.getElementById('v-nome').value = v.nome || '';
+  document.getElementById('v-qtd').value = v.qtd || 1;
+  document.getElementById('v-recrut').value = v.recrutadora || '';
+  document.getElementById('v-lider').value = v.lider || '';
+  document.getElementById('v-setor').value = v.setor || '';
+  document.getElementById('v-meta').value = v.meta || 1;
+  document.getElementById('v-conclusao').value = v.conclusao || 0;
+  document.getElementById('v-mes').value = (v.ano||2026) + '-' + (v.mes||5);
+  document.getElementById('modal-vaga-title').innerHTML = '<i class="ti ti-pencil" style="color:var(--orange)"></i>Editar Vaga';
+  document.getElementById('btn-salvar-vaga').innerHTML = '<i class="ti ti-check"></i> Salvar Alterações';
+  openModal('modal-vaga');
+}
+
+async function deleteVaga(id) {
+  if (currentPerfil !== 'master') return;
+  if (!confirm('Remover esta vaga?')) return;
+  await sb.from('vagas').delete().eq('id', id);
+  toast('Vaga removida.');
+  await carregarDados();
+}
+
+function renderVagas() {
+  const fSetor = document.getElementById('f-vaga-setor').value;
+  const fRecr = document.getElementById('f-vaga-recrut').value;
+  const fMes = document.getElementById('f-vaga-mes').value;
+  const fBusca = document.getElementById('f-vaga-busca').value.toLowerCase();
+  let list = vagas;
+  if (fSetor) list = list.filter(v => v.setor === fSetor);
+  if (fRecr) list = list.filter(v => v.recrutadora === fRecr);
+  if (fMes) {
+    const fParts = fMes.split('-');
+    list = list.filter(v => {
+      const vAno = v.ano || 2026;
+      return String(vAno) === fParts[0] && String(v.mes) === fParts[1];
+    });
+  }
+  if (fBusca) list = list.filter(v => (v.nome||'').toLowerCase().includes(fBusca) || (v.lider||'').toLowerCase().includes(fBusca));
+  // Esconde botão nova vaga para leitor
+  const btnNova = document.getElementById('btn-nova-vaga');
+  if (btnNova) btnNova.style.display = currentPerfil === 'leitor' ? 'none' : 'inline-flex';
+  const tb = document.getElementById('tbody-vagas');
+  if (!list.length) { tb.innerHTML = `<tr><td colspan="11"><div class="empty-state"><i class="ti ti-briefcase"></i>Nenhuma vaga encontrada.</div></td></tr>`; return; }
+  tb.innerHTML = list.map(v => {
+    const pct = v.meta > 0 ? Math.min(100, Math.round((v.conclusao / v.meta) * 100)) : 0;
+    const fc = pct >= 100 ? 'success' : pct < 50 && v.conclusao > 0 ? 'danger' : '';
+    const chip = setorChip[v.setor] || '';
+    const bc = pct >= 100 ? 'badge-success' : pct >= 50 ? 'badge-warning' : 'badge-danger';
+    const editBtn = currentPerfil !== 'leitor' ? `<button class="btn btn-edit" onclick="editarVaga(${v.id})" title="Editar"><i class="ti ti-pencil"></i></button>` : '';
+    const delBtn = currentPerfil === 'master' ? `<button class="btn btn-danger" onclick="deleteVaga(${v.id})" title="Remover"><i class="ti ti-trash"></i></button>` : '';
+    return `<tr>
+      <td><strong>${v.nome}</strong></td>
+      <td style="text-align:center">${v.qtd}</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar">${v.recrutadora ? v.recrutadora.substring(0,2).toUpperCase() : '?'}</div>${v.recrutadora||'—'}</div></td>
+      <td>${v.lider||'—'}</td>
+      <td><span class="chip ${chip}">${v.setor||'—'}</span></td>
+      <td>${meses[v.mes]||'—'}${v.ano&&v.ano!==2026?' '+v.ano:''}</td>
+      <td style="text-align:center">${v.meta}</td>
+      <td style="text-align:center">${v.conclusao}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar"><div class="progress-fill ${fc}" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--muted);width:32px;flex-shrink:0">${pct}%</span></div></td>
+      <td><span class="kpi-badge ${bc}">${v.conclusao >= v.meta && v.meta > 0 ? '✓ Atingida' : pct + '% da meta'}</span></td>
+      <td><div class="btn-actions">${editBtn}${delBtn}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ADMISSOES
+async function salvarAdmissao() {
+  if (currentPerfil === 'leitor') return;
+  const nome = document.getElementById('a-nome').value.trim();
+  const cargo = document.getElementById('a-cargo').value.trim();
+  const area = document.getElementById('a-area').value;
+  const status = document.getElementById('a-status').value;
+  if (!nome) { toast('Informe o nome completo', 'error'); return; }
+  if (!cargo) { toast('Informe o cargo', 'error'); return; }
+  if (!area) { toast('Selecione a área', 'error'); return; }
+  if (!status) { toast('Selecione o status', 'error'); return; }
+  const dados = {
+    nome, cargo, area,
+    data_admissao: document.getElementById('a-data').value || null,
+    origem: document.getElementById('a-origem').value,
+    recrutadora: document.getElementById('a-recrut').value,
+    status, time: document.getElementById('a-time').value.trim(),
+    gestor: document.getElementById('a-gestor').value.trim()
+  };
+  if (editingAdmId) {
+    const { error } = await sb.from('admissoes').update(dados).eq('id', editingAdmId);
+    if (error) { toast('Erro ao atualizar', 'error'); return; }
+    toast('Admissão atualizada!');
+  } else {
+    const { error } = await sb.from('admissoes').insert(dados);
+    if (error) { toast('Erro ao salvar', 'error'); return; }
+    toast('Admissão registrada!');
+  }
+  closeModal('modal-admissao');
+  limparFormAdm();
+  await carregarDados();
+}
+
+function limparFormAdm() {
+  ['a-nome','a-cargo','a-data','a-time','a-gestor'].forEach(id => document.getElementById(id).value = '');
+  ['a-area','a-origem','a-recrut','a-status'].forEach(id => document.getElementById(id).value = '');
+}
+
+function editarAdm(id) {
+  if (currentPerfil === 'leitor') return;
+  const a = admissoes.find(x => x.id === id); if (!a) return;
+  editingAdmId = id;
+  document.getElementById('a-nome').value = a.nome || '';
+  document.getElementById('a-cargo').value = a.cargo || '';
+  document.getElementById('a-area').value = a.area || '';
+  document.getElementById('a-data').value = a.data_admissao || '';
+  document.getElementById('a-origem').value = a.origem || '';
+  document.getElementById('a-recrut').value = a.recrutadora || '';
+  document.getElementById('a-status').value = a.status || '';
+  document.getElementById('a-time').value = a.time || '';
+  document.getElementById('a-gestor').value = a.gestor || '';
+  document.getElementById('modal-adm-title').innerHTML = '<i class="ti ti-pencil" style="color:var(--orange)"></i>Editar Admissão';
+  document.getElementById('btn-salvar-adm').innerHTML = '<i class="ti ti-check"></i> Salvar Alterações';
+  openModal('modal-admissao');
+}
+
+async function deleteAdm(id) {
+  if (currentPerfil !== 'master') return;
+  if (!confirm('Remover este registro?')) return;
+  await sb.from('admissoes').delete().eq('id', id);
+  toast('Registro removido.');
+  await carregarDados();
+}
+
+function renderAdmissoes() {
+  const fMes = document.getElementById('f-adm-mes').value;
+  const fArea = document.getElementById('f-adm-area').value;
+  const fStatus = document.getElementById('f-adm-status').value;
+  const fRecr = document.getElementById('f-adm-recrut').value;
+  const fBusca = document.getElementById('f-adm-busca').value.toLowerCase();
+  let list = admissoes;
+  if (fMes) {
+    const fParts = fMes.split('-');
+    list = list.filter(a => {
+      if (!a.data_admissao) return false;
+      const d = new Date(a.data_admissao + 'T00:00:00');
+      return d.getFullYear() === parseInt(fParts[0]) && (d.getMonth()+1) === parseInt(fParts[1]);
+    });
+  }
+  if (fArea) list = list.filter(a => a.area === fArea);
+  if (fStatus) list = list.filter(a => a.status === fStatus);
+  if (fRecr) list = list.filter(a => a.recrutadora === fRecr);
+  if (fBusca) list = list.filter(a => (a.nome||'').toLowerCase().includes(fBusca) || (a.cargo||'').toLowerCase().includes(fBusca));
+  const btnNova = document.getElementById('btn-nova-adm');
+  if (btnNova) btnNova.style.display = currentPerfil === 'leitor' ? 'none' : 'inline-flex';
+  const tb = document.getElementById('tbody-admissoes');
+  if (!list.length) { tb.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="ti ti-users"></i>Nenhuma admissão encontrada.</div></td></tr>`; return; }
+  tb.innerHTML = list.map(a => {
+    const sc = statusColors[a.status] || 'gray';
+    const sd = statusDot[a.status] || 'dot-gray';
+    const chip = setorChip[a.area] || '';
+    const dt = a.data_admissao ? new Date(a.data_admissao + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+    const editBtn = currentPerfil !== 'leitor' ? `<button class="btn btn-edit" onclick="editarAdm(${a.id})" title="Editar"><i class="ti ti-pencil"></i></button>` : '';
+    const delBtn = currentPerfil === 'master' ? `<button class="btn btn-danger" onclick="deleteAdm(${a.id})" title="Remover"><i class="ti ti-trash"></i></button>` : '';
+    return `<tr>
+      <td style="width:40px"><input type="checkbox" class="adm-check" value="${a.id}" onchange="updateSelectionCount()"></td>
+      <td><strong>${a.nome}</strong></td><td>${a.cargo||'—'}</td>
+      <td><span class="chip ${chip}">${a.area||'—'}</span></td>
+      <td>${dt}</td><td>${a.origem||'—'}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:28px;height:28px;font-size:10px">${a.recrutadora ? a.recrutadora.substring(0,2).toUpperCase() : '?'}</div>${a.recrutadora||'—'}</div></td>
+      <td><span class="kpi-badge badge-${sc}" style="display:inline-flex;align-items:center"><span class="status-dot ${sd}"></span>${a.status||'—'}</span></td>
+      <td>${a.time||'—'}</td><td>${a.gestor||'—'}</td>
+      <td><div class="btn-actions">${editBtn}${delBtn}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+// DASHBOARD
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderDashboard() {
+  if (!document.getElementById('kpi-container')) return;
+  const mesFiltro = document.getElementById('mes-filtro').value;
+  const dashRecrutFiltro = document.getElementById('dash-recrut') ? document.getElementById('dash-recrut').value : '';
+  const dashAreaFiltro = document.getElementById('dash-area') ? document.getElementById('dash-area').value : '';
+
+  function matchAdmMes(dataAdm) {
+    if (!mesFiltro || mesFiltro === 'all') return true;
+    if (!dataAdm) return false;
+    const d = new Date(dataAdm + 'T00:00:00');
+    const parts = mesFiltro.split('-');
+    return d.getFullYear() === parseInt(parts[0]) && (d.getMonth()+1) === parseInt(parts[1]);
+  }
+
+  // Filter vagas by mes + recrutadora
+  let vFilt = mesFiltro === 'all' ? vagas : vagas.filter(v => {
+    const parts = mesFiltro.split('-');
+    const vAno = v.ano || 2026;
+    return String(vAno) === parts[0] && String(v.mes) === parts[1];
+  });
+  if (dashRecrutFiltro) vFilt = vFilt.filter(v => (v.recrutadora||'').toLowerCase().includes(dashRecrutFiltro.toLowerCase()));
+  if (dashAreaFiltro) vFilt = vFilt.filter(v => v.setor === dashAreaFiltro);
+
+  // Filter admissoes by mes + recrutadora + area
+  let aFilt = admissoes.filter(a => matchAdmMes(a.data_admissao));
+  if (dashRecrutFiltro) aFilt = aFilt.filter(a => (a.recrutadora||'').toLowerCase().includes(dashRecrutFiltro.toLowerCase()));
+  if (dashAreaFiltro) aFilt = aFilt.filter(a => a.area === dashAreaFiltro);
+  const totalVagas = vFilt.reduce((s, v) => s + (v.qtd||0), 0);
+  const totalMeta = vFilt.reduce((s, v) => s + (v.meta||0), 0);
+  const totalConc = vFilt.reduce((s, v) => s + (v.conclusao||0), 0);
+  const totalAdm = aFilt.length;
+  const concluidas = aFilt.filter(a => a.status === 'Concluída').length;
+  const pct = totalMeta > 0 ? Math.round((totalConc / totalMeta) * 100) : 0;
+  const taxaAdm = totalAdm > 0 ? Math.round((concluidas / totalAdm) * 100) : 0;
+  const vagasConcluidas = vFilt.filter(v => v.conclusao >= v.meta && v.meta > 0).length;
+  const vagasPendentes = vFilt.filter(v => v.conclusao < v.meta && v.meta > 0).length;
+  const vagasCriticas = vFilt.filter(v => {
+    const p = v.meta > 0 ? Math.round((v.conclusao/v.meta)*100) : 0;
+    return p < 50 && v.meta > 0;
+  }).length;
+
+  document.getElementById('kpi-container').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Vagas Abertas</div><div class="kpi-value">${vFilt.length}</div><div class="kpi-sub">${totalVagas} posições no período</div></div>
+    <div class="kpi"><div class="kpi-label">Meta do Mês</div><div class="kpi-value">${totalMeta}</div><div class="kpi-sub">conclusões esperadas</div></div>
+    <div class="kpi"><div class="kpi-label">Realizado</div><div class="kpi-value">${totalConc}</div><span class="kpi-badge ${pct>=100?'badge-success':pct>=50?'badge-warning':'badge-danger'}">${pct}% da meta</span></div>
+    <div class="kpi" style="--before-color:#22a05a"><div class="kpi-label">✓ Vagas Concluídas</div><div class="kpi-value" style="color:#22a05a">${vagasConcluidas}</div><div class="kpi-sub">meta 100% atingida</div></div>
+    <div class="kpi" style="--before-color:#e8a020"><div class="kpi-label">⏳ Vagas Pendentes</div><div class="kpi-value" style="color:#e8a020">${vagasPendentes}</div><div class="kpi-sub">${vagasCriticas} críticas (abaixo 50%)</div></div>
+    <div class="kpi"><div class="kpi-label">Total Admissões</div><div class="kpi-value">${totalAdm}</div><div class="kpi-sub">no período selecionado</div></div>
+    <div class="kpi"><div class="kpi-label">Taxa Conclusão</div><div class="kpi-value">${taxaAdm}%</div><div class="kpi-sub">${concluidas} de ${totalAdm} admissões</div></div>`;
+  const setores = ['Atendimento','Comercial','Tecnologia','Backoffice / Operações'];
+  destroyChart('setor');
+  charts['setor'] = new Chart(document.getElementById('chart-setor'), {type:'bar',data:{labels:['Atendimento','Comercial','Tecnologia','Backoffice'],datasets:[{label:'Vagas',data:setores.map(s=>vFilt.filter(v=>v.setor===s).reduce((a,v)=>a+(v.qtd||0),0)),backgroundColor:['#1a4b8c','#f5841f','#22a05a','#7c5bbf'],borderRadius:7,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f2f8'}}}}});
+  const recrutas = [...new Set(aFilt.map(a => a.recrutadora).filter(Boolean))];
+  destroyChart('recrut');
+  charts['recrut'] = new Chart(document.getElementById('chart-recrut'), {type:'bar',data:{labels:recrutas.length?recrutas:['Sem dados'],datasets:[{label:'Admissões',data:recrutas.length?recrutas.map(r=>aFilt.filter(a=>a.recrutadora===r).length):[0],backgroundColor:CORES,borderRadius:7,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f2f8'}}}}});
+  const recrs = vFilt.reduce((acc,v)=>{if(v.recrutadora){if(!acc[v.recrutadora])acc[v.recrutadora]={meta:0,conc:0};acc[v.recrutadora].meta+=v.meta||0;acc[v.recrutadora].conc+=v.conclusao||0;}return acc;},{});
+  const rKeys = Object.keys(recrs);
+  const prEl = document.getElementById('progress-recrut');
+  prEl.innerHTML = rKeys.length ? rKeys.map(r=>{const d=recrs[r];const p=d.meta>0?Math.min(100,Math.round((d.conc/d.meta)*100)):0;const fc=p>=100?'success':p<50?'danger':'';return`<div style="margin-bottom:14px"><div class="progress-label"><span>${r}</span><span>${d.conc}/${d.meta} · ${p}%</span></div><div class="progress-bar" style="height:8px"><div class="progress-fill ${fc}" style="width:${p}%"></div></div></div>`;}).join('') : '<div class="empty-state" style="padding:20px 0">Nenhum dado no período</div>';
+  const statusList = ['Concluída','Em Andamento','Pendente','Desistente'];
+  const statusCores = ['#22a05a','#1a4b8c','#e8a020','#d93025'];
+  const statusCount = statusList.map(s => aFilt.filter(a => a.status === s).length);
+  const total = statusCount.reduce((a,b)=>a+b,0)||1;
+  destroyChart('status');
+  charts['status'] = new Chart(document.getElementById('chart-status'), {type:'doughnut',data:{labels:statusList,datasets:[{data:statusCount.some(v=>v>0)?statusCount:[1],backgroundColor:statusCount.some(v=>v>0)?statusCores:['#e8eaf0'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return` ${c.label}: ${c.raw} (${Math.round(c.raw/total*100)}%)`}}}}}});
+  document.getElementById('status-legend').innerHTML = statusList.map((s,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${statusCores[i]}"></div>${s} (${statusCount[i]})</div>`).join('');
+  const origens = ['Captação Externa','Captação Interna'];
+  destroyChart('origem');
+  charts['origem'] = new Chart(document.getElementById('chart-origem'), {type:'bar',data:{labels:['Atendimento','Comercial','Tecnologia','Backoffice'],datasets:origens.map((o,oi)=>({label:o,data:setores.map(s=>aFilt.filter(a=>a.area===s&&a.origem===o).length),backgroundColor:oi===0?'#1a4b8c':'#f5841f',borderRadius:5,borderSkipped:false}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f2f8'}}}}});
+}
+
+// ALERTAS
+function renderAlertas() {
+  const el = document.getElementById('alertas-container');
+  let html = '';
+  const vagasCriticas = vagas.filter(v=>{const p=v.meta>0?Math.round((v.conclusao/v.meta)*100):0;return p<50&&v.conclusao<v.meta&&v.meta>0;});
+  const vagasAlerta = vagas.filter(v=>{const p=v.meta>0?Math.round((v.conclusao/v.meta)*100):0;return p>=50&&p<100;});
+  const vagasBatidas = vagas.filter(v=>v.conclusao>=v.meta&&v.meta>0);
+  const desistentes = admissoes.filter(a=>a.status==='Desistente');
+  if (!vagas.length && !admissoes.length) { el.innerHTML='<div class="empty-state"><i class="ti ti-bell-off"></i>Cadastre vagas e admissões para monitorar alertas.</div>'; return; }
+  if (vagasCriticas.length) { html+=`<div class="alert-section-title red"><i class="ti ti-alert-triangle"></i> Crítico — Abaixo de 50% (${vagasCriticas.length})</div>`; html+=vagasCriticas.map(v=>{const p=v.meta>0?Math.round((v.conclusao/v.meta)*100):0;return`<div class="alert-box alert-danger"><i class="ti ti-alert-triangle" style="font-size:18px;flex-shrink:0"></i><div><strong>${v.nome}</strong> · ${v.recrutadora||'—'} · Líder: ${v.lider||'—'}<br><span style="font-size:12px">${meses[v.mes]} · ${v.conclusao}/${v.meta} (${p}%) · ${v.setor}</span></div></div>`}).join(''); }
+  if (vagasAlerta.length) { html+=`<div class="alert-section-title yellow"><i class="ti ti-clock"></i> Atenção — Entre 50% e 99% (${vagasAlerta.length})</div>`; html+=vagasAlerta.map(v=>{const p=Math.round((v.conclusao/v.meta)*100);return`<div class="alert-box alert-warning"><i class="ti ti-clock" style="font-size:18px;flex-shrink:0"></i><div><strong>${v.nome}</strong> · ${v.recrutadora||'—'}<br><span style="font-size:12px">${meses[v.mes]} · ${v.conclusao}/${v.meta} (${p}%) · ${v.setor}</span></div></div>`}).join(''); }
+  if (desistentes.length) { html+=`<div class="alert-section-title red"><i class="ti ti-user-off"></i> Desistentes (${desistentes.length})</div>`; html+=desistentes.map(a=>`<div class="alert-box alert-danger"><i class="ti ti-user-off" style="font-size:18px;flex-shrink:0"></i><div><strong>${a.nome}</strong> · ${a.cargo||'—'} · ${a.area||'—'}<br><span style="font-size:12px">Recrutadora: ${a.recrutadora||'—'} · Gestor: ${a.gestor||'—'}</span></div></div>`).join(''); }
+  if (vagasBatidas.length) { html+=`<div class="alert-section-title green"><i class="ti ti-circle-check"></i> Metas Atingidas (${vagasBatidas.length})</div>`; html+=vagasBatidas.map(v=>`<div class="alert-box alert-success"><i class="ti ti-circle-check" style="font-size:18px;flex-shrink:0"></i><div><strong>${v.nome}</strong> · ${v.recrutadora||'—'}<br><span style="font-size:12px">${meses[v.mes]} · ${v.conclusao} conclusões · Meta de ${v.meta} atingida!</span></div></div>`).join(''); }
+  if (!html) html='<div class="alert-box alert-success"><i class="ti ti-circle-check" style="font-size:18px;flex-shrink:0"></i><strong>Tudo dentro do esperado.</strong></div>';
+  el.innerHTML = html;
+}
+
+// USUARIOS (master)
+async function renderUsuarios() {
+  if (currentPerfil !== 'master') return;
+  const el = document.getElementById('lista-usuarios');
+  const { data: users } = await sb.from('profiles').select('*').order('nome');
+  if (!users || !users.length) { el.innerHTML='<div class="empty-state"><i class="ti ti-users"></i>Nenhum usuário cadastrado.</div>'; return; }
+  const perfilClass = { master:'perfil-master', editora:'perfil-editora', leitor:'perfil-leitor' };
+  el.innerHTML = users.map(u => `
+    <div class="user-card">
+      <div class="avatar">${(u.nome||'?').substring(0,2).toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${u.nome||'—'}</div>
+        <div class="user-email">${u.email||'—'}</div>
+      </div>
+      <span class="perfil-badge ${perfilClass[u.perfil]||''}">${u.perfil||'—'}</span>
+      <div class="btn-actions">
+        <select onchange="alterarPerfil('${u.id}', this.value)" style="border:0.5px solid var(--border);border-radius:7px;padding:5px 8px;font-size:12px;color:var(--text)">
+          <option value="">Alterar perfil...</option>
+          <option value="editora">Editora</option>
+          <option value="leitor">Leitor</option>
+          <option value="master">Master</option>
+        </select>
+        ${u.id !== currentUser.id ? `<button class="btn btn-danger" onclick="removerUsuario('${u.id}')"><i class="ti ti-trash"></i></button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function criarUsuario() {
+  if (currentPerfil !== 'master') return;
+  const nome = document.getElementById('u-nome').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const senha = document.getElementById('u-senha').value;
+  const perfil = document.getElementById('u-perfil').value;
+  if (!nome || !email || !senha || !perfil) { toast('Preencha todos os campos', 'error'); return; }
+  if (senha.length < 6) { toast('Senha deve ter pelo menos 6 caracteres', 'error'); return; }
+  const { data, error } = await sb.auth.admin ? sb.auth.admin.createUser({ email, password: senha, email_confirm: true }) : { error: { message: 'use signup' } };
+  // Fallback: usar signUp
+  const { data: signData, error: signError } = await sb.auth.signUp({ email, password: senha, options: { data: { nome, perfil } } });
+  if (signError) { toast('Erro: ' + signError.message, 'error'); return; }
+  if (signData.user) {
+    await sb.from('profiles').upsert({ id: signData.user.id, email, nome, perfil });
+    toast('Usuário criado! Ele receberá um e-mail de confirmação.');
+    closeModal('modal-usuario');
+    document.getElementById('u-nome').value = '';
+    document.getElementById('u-email').value = '';
+    document.getElementById('u-senha').value = '';
+    document.getElementById('u-perfil').value = '';
+    renderUsuarios();
+  }
+}
+
+async function alterarPerfil(userId, novoPerfil) {
+  if (!novoPerfil || currentPerfil !== 'master') return;
+  await sb.from('profiles').update({ perfil: novoPerfil }).eq('id', userId);
+  toast('Perfil atualizado!');
+  renderUsuarios();
+}
+
+async function removerUsuario(userId) {
+  if (currentPerfil !== 'master') return;
+  if (!confirm('Remover este usuário?')) return;
+  await sb.from('profiles').delete().eq('id', userId);
+  toast('Usuário removido.');
+  renderUsuarios();
+}
+
+// SELECTION
+function toggleAllAdm(cb) {
+  document.querySelectorAll('.adm-check').forEach(function(c){ c.checked = cb.checked; });
+  updateSelectionCount();
+}
+
+function updateSelectionCount() {
+  const checked = document.querySelectorAll('.adm-check:checked').length;
+  const btn = document.getElementById('btn-deletar-selecionados');
+  const count = document.getElementById('count-selecionados');
+  if (btn) {
+    btn.style.display = checked > 0 && currentPerfil === 'master' ? 'inline-flex' : 'none';
+    if (count) count.textContent = checked;
+  }
+  // Update select-all checkbox state
+  const all = document.querySelectorAll('.adm-check').length;
+  const allCheck = document.getElementById('check-all-adm');
+  if (allCheck) {
+    allCheck.indeterminate = checked > 0 && checked < all;
+    allCheck.checked = checked === all && all > 0;
+  }
+}
+
+async function deletarSelecionados() {
+  if (currentPerfil !== 'master') return;
+  const checks = document.querySelectorAll('.adm-check:checked');
+  if (!checks.length) return;
+  const ids = Array.from(checks).map(function(c){ return parseInt(c.value); });
+  if (!confirm('Deletar ' + ids.length + ' registro(s) selecionado(s)? Esta ação não pode ser desfeita.')) return;
+  
+  const btn = document.getElementById('btn-deletar-selecionados');
+  if (btn) btn.innerHTML = '<i class="ti ti-loader"></i> Deletando...';
+  
+  const { error } = await sb.from('admissoes').delete().in('id', ids);
+  if (error) { toast('Erro ao deletar: ' + error.message, 'error'); }
+  else { toast(ids.length + ' registro(s) deletado(s) com sucesso!'); }
+  
+  await carregarDados();
+  updateSelectionCount();
+}
+
+// IMPORT CSV
+let importBuffer = [];
+
+function importarCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const lines = text.split('\n').filter(function(l){ return l.trim(); });
+    if (lines.length < 2) { toast('Arquivo vazio ou inválido', 'error'); return; }
+    
+    const sep = lines[0].includes(';') ? ';' : ',';
+    const headers = lines[0].split(sep).map(function(h){ return h.replace(/"/g,'').trim().toLowerCase(); });
+    console.log('Headers:', headers);
+    
+    // Fixed column mapping based on Onfly spreadsheet structure
+    // A=0:Nome, B=1:Cargo, C=2:Area, D=3:Admissao, E=4:Origem, H=7:Recrutador, N=13:Status, Q=16:Gestor, P=15:BU/Time
+    function findColIdx(names) {
+      for (var i=0; i<names.length; i++) {
+        var idx = headers.findIndex(function(h){ return h.includes(names[i].toLowerCase()); });
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    }
+    
+    var iNome = findColIdx(['nome completo','nome']);
+    if (iNome < 0) iNome = 0;
+    var iCargo = findColIdx(['cargo','igual da proposta']);
+    if (iCargo < 0) iCargo = 1;
+    var iArea = findColIdx(['area','área']);
+    if (iArea < 0) iArea = 2;
+    var iData = findColIdx(['admiss','data']);
+    if (iData < 0) iData = 3;
+    var iOrigem = findColIdx(['origem (admiss','origem do candidato']);
+    if (iOrigem < 0) iOrigem = findColIdx(['origem']);
+    if (iOrigem < 0) iOrigem = 4;
+    var iRecr = findColIdx(['recrutador']);
+    if (iRecr < 0) iRecr = 7;
+    var iStatus = findColIdx(['status']);
+    if (iStatus < 0) iStatus = 13;
+    var iTime = findColIdx(['bu','time','equipe']);
+    if (iTime < 0) iTime = 15;
+    var iGestor = findColIdx(['gestor direto','gestor']);
+    if (iGestor < 0) iGestor = 16;
+    
+    console.log('Col indices:', {iNome,iCargo,iArea,iData,iOrigem,iRecr,iStatus,iTime,iGestor});
+    
+    importBuffer = [];
+    
+    for (var i = 1; i < lines.length; i++) {
+      var cols = parseCsvLine(lines[i], sep);
+      if (cols.length < 2) continue;
+      var nome = getCol(cols, iNome);
+      if (!nome || nome.length < 3) continue;
+      // Skip header-like rows
+      if (nome.toUpperCase().includes('NOME')) continue;
+      
+      // Parse date DD/MM/YYYY or MM/DD/YYYY
+      var dataAdm = null;
+      var rawDate = getCol(cols, iData);
+      if (rawDate) {
+        rawDate = rawDate.replace(/"/g,'').trim();
+        var parts = rawDate.split('/');
+        if (parts.length === 3) {
+          var d = parts[0].padStart(2,'0');
+          var m = parts[1].padStart(2,'0');
+          var y = parts[2].length === 2 ? '20'+parts[2] : parts[2];
+          // Assume DD/MM/YYYY (Brazilian format)
+          dataAdm = y+'-'+m+'-'+d;
+        } else if (rawDate.includes('-') && rawDate.length >= 8) {
+          dataAdm = rawDate.substring(0,10);
+        }
+      }
+      
+      // Map area
+      var area = getCol(cols, iArea) || '';
+      var areaUp = area.toUpperCase();
+      if (areaUp.includes('ATEND')) area = 'Atendimento';
+      else if (areaUp.includes('COMERC')) area = 'Comercial';
+      else if (areaUp.includes('TEC') || areaUp.includes('TECH')) area = 'Tecnologia';
+      else if (areaUp.includes('BACK') || areaUp.includes('OPER')) area = 'Backoffice / Operações';
+      
+      // Map origem
+      var origem = getCol(cols, iOrigem) || '';
+      if (origem.toUpperCase().includes('INTERN')) origem = 'Captação Interna';
+      else if (origem.trim()) origem = 'Captação Externa';
+      
+      // Map status
+      var statusRaw = getCol(cols, iStatus) || '';
+      var status = 'Em Andamento';
+      var statusLow = statusRaw.toLowerCase();
+      if (statusLow.includes('conclu')) status = 'Concluída';
+      else if (statusLow.includes('desist') || statusLow.includes('cancel')) status = 'Desistente';
+      else if (statusLow.includes('pend')) status = 'Pendente';
+      else if (statusLow.includes('andamento')) status = 'Em Andamento';
+      
+      importBuffer.push({
+        nome: nome,
+        cargo: getCol(cols, iCargo) || '',
+        area: area,
+        data_admissao: dataAdm,
+        origem: origem,
+        recrutadora: getCol(cols, iRecr) || '',
+        status: status,
+        time: getCol(cols, iTime) || '',
+        gestor: getCol(cols, iGestor) || ''
+      });
+    }
+    
+    if (!importBuffer.length) { toast('Nenhum registro válido encontrado', 'error'); return; }
+    
+    // Show preview
+    const preview = document.getElementById('import-preview');
+    preview.innerHTML = `
+      <div style="background:#e6f9ef;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#166a3e;font-weight:600">
+        <i class="ti ti-circle-check"></i> ${importBuffer.length} registros encontrados para importar
+      </div>
+      <div style="max-height:350px;overflow-y:auto;border-radius:10px;border:0.5px solid var(--border)">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead style="background:#f8f9fc;position:sticky;top:0">
+            <tr>
+              <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:11px">Nome</th>
+              <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:11px">Cargo</th>
+              <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:11px">Área</th>
+              <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:11px">Admissão</th>
+              <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:11px">Status</th>
+              <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:11px">Recrutadora</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${importBuffer.map(r => `<tr style="border-bottom:0.5px solid #f0f2f8">
+              <td style="padding:7px 12px">${r.nome}</td>
+              <td style="padding:7px 12px">${r.cargo||'—'}</td>
+              <td style="padding:7px 12px">${r.area||'—'}</td>
+              <td style="padding:7px 12px">${r.data_admissao?new Date(r.data_admissao+'T00:00:00').toLocaleDateString('pt-BR'):'—'}</td>
+              <td style="padding:7px 12px">${r.status}</td>
+              <td style="padding:7px 12px">${r.recrutadora||'—'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    openModal('modal-import');
+    // Reset input so same file can be re-imported
+    event.target.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function findCol(headers, names) {
+  for (const n of names) {
+    const idx = headers.findIndex(h => h.includes(n.toLowerCase()));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function getCol(cols, idx) {
+  if (idx < 0 || idx >= cols.length) return '';
+  return cols[idx].replace(/^"|"$/g,'').trim();
+}
+
+function parseCsvLine(line, sep) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQuotes = !inQuotes; }
+    else if (c === sep && !inQuotes) { result.push(cur); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+async function confirmarImport() {
+  if (!importBuffer.length) return;
+  const btn = document.getElementById('btn-confirmar-import');
+  btn.innerHTML = '<i class="ti ti-loader"></i> Importando...';
+  btn.disabled = true;
+  
+  // Insert in batches of 50
+  let total = 0;
+  for (let i = 0; i < importBuffer.length; i += 50) {
+    const batch = importBuffer.slice(i, i + 50);
+    const { error } = await sb.from('admissoes').insert(batch);
+    if (!error) total += batch.length;
+    else console.error('Erro batch:', error);
+  }
+  
+  closeModal('modal-import');
+  importBuffer = [];
+  btn.innerHTML = '<i class="ti ti-check"></i> Confirmar Importação';
+  btn.disabled = false;
+  await carregarDados();
+  toast(`${total} admissões importadas com sucesso!`);
+}
+
+// EXPORT
+function exportCSV(rows, filename) {
+  const csv = rows.map(r => r.map(c => '"' + (String(c||'').replace(/"/g,'""')) + '"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+}
+function exportVagasCSV() {
+  const header = ['Nome da Vaga','Quantidade','Recrutadora','Líder','Setor','Mês','Meta','Realizado','% Atingido'];
+  const rows = vagas.map(v => [v.nome,v.qtd,v.recrutadora,v.lider,v.setor,meses[v.mes],v.meta,v.conclusao,v.meta>0?Math.round((v.conclusao/v.meta)*100)+'%':'0%']);
+  exportCSV([header,...rows],'onfly_vagas.csv'); toast('CSV exportado!');
+}
+function exportAdmCSV() {
+  const header = ['Nome Completo','Cargo','Área','Data Admissão','Origem','Recrutadora','Status','Time','Gestor'];
+  const rows = admissoes.map(a => [a.nome,a.cargo,a.area,a.data_admissao?new Date(a.data_admissao+'T00:00:00').toLocaleDateString('pt-BR'):'',a.origem,a.recrutadora,a.status,a.time,a.gestor]);
+  exportCSV([header,...rows],'onfly_admissoes.csv'); toast('CSV exportado!');
+}
+function exportDashboardCSV() { exportVagasCSV(); setTimeout(exportAdmCSV, 500); }
+
+// Login com Enter
+document.getElementById('login-senha').addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
+</script>
+</body>
+</html>
